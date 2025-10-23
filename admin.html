@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guild Boss Tracker - Admin</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 p-4">
+
+  <h1 class="text-2xl font-bold mb-4">Guild Boss Tracker - Admin</h1>
+
+  <!-- Week Selector -->
+  <div class="mb-4">
+    <label class="block font-semibold mb-1">Select Week:</label>
+    <select id="week-selector" class="border p-2 rounded w-full"></select>
+  </div>
+
+  <!-- Total Earnings -->
+  <div class="mb-4">
+    <label class="block font-semibold mb-1">Total Earnings (₱):</label>
+    <input type="number" id="total-earnings" class="border p-2 rounded w-full" placeholder="Enter total earnings">
+  </div>
+
+  <!-- Add Boss Participation -->
+  <div class="mb-4">
+    <label class="block font-semibold mb-1">Select Boss:</label>
+    <div id="select-boss-container" class="mb-2"></div>
+
+    <label class="block font-semibold mb-1">Select Members:</label>
+    <div id="select-members-container" class="mb-2"></div>
+
+    <button id="add-participation-btn" class="bg-green-600 text-white p-2 rounded mt-2">Add Participation</button>
+  </div>
+
+  <!-- Dashboard -->
+  <h2 class="text-xl font-bold mb-2">Dashboard</h2>
+  <div id="admin-dashboard" class="bg-white p-4 rounded shadow max-h-[500px] overflow-y-auto"></div>
+
+  <script type="module" src="js/admin.js"></script>
+</body>
+</html>
