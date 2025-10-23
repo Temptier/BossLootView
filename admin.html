@@ -13,8 +13,6 @@
 <!-- Boss Loot Panel -->
 <div class="panel">
 <h2>Boss Loot Panel</h2>
-<p>Select a boss, participants, type loot, and click "Add New Loot Entry".</p>
-<button onclick="openModal()">Select Boss & Participants</button>
 
 <div class="list-container">
     <div class="list">
@@ -40,16 +38,25 @@
 <div id="temp-loot-items" class="loot-list-container"></div>
 </div>
 
-<!-- Add Boss / Add Member Panel -->
+<!-- Add Boss / Add Member / Select Boss & Participants Panel -->
 <div class="panel">
-<h2>Add Boss / Add Member</h2>
+<h2>Add Boss / Add Member / Select Participants</h2>
+
 <div class="typing-slot">
     <input type="text" id="new-boss-name" placeholder="New Boss Name">
     <button onclick="addNewBoss()">Add Boss</button>
 </div>
+
 <div class="typing-slot">
     <input type="text" id="new-member-name" placeholder="New Member Name">
     <button onclick="addNewMember()">Add Member</button>
+</div>
+
+<!-- Modal Trigger Section moved here -->
+<div class="typing-slot">
+    <select id="modal-boss"></select>
+    <select id="modal-member" multiple></select>
+    <button onclick="confirmSelection()">Confirm Selection</button>
 </div>
 </div>
 
@@ -60,19 +67,6 @@
 <div class="summary-panel">
     <div><strong>Total Active Loot:</strong> <span id="total-active-loot">0</span></div>
     <div><strong>Active Share per Member:</strong> <span id="active-share-per-member">0</span></div>
-</div>
-</div>
-
-<!-- Modal -->
-<div id="entry-modal" class="modal">
-<div class="modal-content">
-    <h3>Select Boss and Participants</h3>
-    <select id="modal-boss"></select>
-    <br>
-    <select id="modal-member" multiple></select>
-    <br>
-    <button onclick="confirmSelection()">Confirm</button>
-    <button onclick="closeModal()">Cancel</button>
 </div>
 </div>
 
