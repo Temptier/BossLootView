@@ -1,120 +1,148 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, doc, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+// ===================== FIREBASE SETUP =====================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  query,
+  orderBy,
+  doc,
+  getDoc,
+  where,
+} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
 
-// ------------------- Firebase View
-const firebaseConfigView = {
+// ⚙️ VIEW FIREBASE CONFIG
+const firebaseConfig = {
   apiKey: "AIzaSyCgkO44xHVeQv9XJvjIktAQhdet9J-6hvM",
   authDomain: "guildlootsview.firebaseapp.com",
   projectId: "guildlootsview",
   storageBucket: "guildlootsview.firebasestorage.app",
   messagingSenderId: "535298106967",
-  appId: "1:535298106967:web:c38f45b23b8782e2026512"
-};
-const appView = initializeApp(firebaseConfigView);
-const dbView = getFirestore(appView);
-
-// ------------------- DOM Elements
-const weekSelector = document.getElementById("week-selector");
-const totalDiamondSpan = document.getElementById("total-diamond");
-const totalPesoSpan = document.getElementById("total-peso");
-const viewDashboard = document.getElementById("view-dashboard");
-const adminAccessBtn = document.getElementById("admin-access-btn");
-
-let members = [];
-let bosses = [];
-let currentWeekId = null;
-
-// ------------------- Admin Access
-const ADMIN_PASSWORD = "supersecret"; // Change password here
-adminAccessBtn.onclick = () => {
-  const pwd = prompt("Enter admin password:");
-  if (pwd === ADMIN_PASSWORD) {
-    window.location.href = "admin.html";
-  } else {
-    alert("Incorrect password");
-  }
+  appId: "1:535298106967:web:c38f45b23b8782e2026512",
 };
 
-// ------------------- Load Members
-async function loadMembers() {
-  const snapshot = await getDocs(collection(dbView, "members"));
-  members = [];
-  snapshot.forEach(m => members.push({ id: m.id, name: m.data().name }));
-}
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-// ------------------- Load Bosses
-async function loadBosses() {
-  const snapshot = await getDocs(collection(dbView, "bosses"));
-  bosses = [];
-  snapshot.forEach(b => bosses.push({ id: b.id, name: b.data().name }));
-}
+// ===================== DOM ELEMENTS =====================
+const weekSelect = document.getElementById("weekSelect");
+const totalDiamonds = document.getElementById("totalDiamonds");
+const totalPeso = document.getElementById("totalPeso");
+const totalParticipations = document.getElementById("totalParticipations");
+const totalMembers = document.getElementById("totalMembers");
+const participationList = document.getElementById("participationList");
+const bossParticipantsList = document.getElementById("bossParticipantsList");
 
-// ------------------- Load Weeks
+// ===================== LOAD WEEKS =====================
 async function loadWeeks() {
-  const snapshot = await getDocs(collection(dbView, "weeks"));
-  weekSelector.innerHTML = "";
-  if (snapshot.empty) return;
-  snapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    const option = document.createElement("option");
-    option.value = docSnap.id;
-    const start = data.start.toDate ? data.start.toDate() : new Date(data.start);
-    const end = data.end.toDate ? data.end.toDate() : new Date(data.end);
-    option.textContent = `${start.toDateString()} - ${end.toDateString()}`;
-    weekSelector.appendChild(option);
+  const weeksRef = collection(db, "weeks");
+  const qWeeks = query(weeksRef, orderBy("start", "desc"));
+  const snapshot = await getDocs(qWeeks);
+  weekSelect.innerHTML = "";
+
+  snapshot.forEach((docSnap) => {
+    const week = docSnap.data();
+    const opt = document.createElement("option");
+    opt.value = docSnap.id;
+    opt.textContent = `${week.start} - ${week.end}`;
+    weekSelect.appendChild(opt);
   });
-  currentWeekId = weekSelector.options[0]?.value;
-  weekSelector.value = currentWeekId;
-  loadDashboard();
+
+  if (weekSelect.options.length > 0) {
+    weekSelect.selectedIndex = 0;
+    loadWeekData(weekSelect.value);
+  }
 }
 
-// ------------------- Dashboard
-async function loadDashboard() {
-  if (!currentWeekId) return;
+// ===================== LOAD WEEKLY DATA =====================
+async function loadWeekData(weekId) {
+  const weekDocRef = doc(db, "weeks", weekId);
+  const weekDoc = await getDoc(weekDocRef);
 
-  const weekRef = doc(dbView, "weeks", currentWeekId);
-  const weekSnap = await getDocs(collection(dbView, "weeks")).then(snap => snap.docs.find(d => d.id === currentWeekId));
-  const weekData = weekSnap?.data() || {};
-  totalDiamondSpan.textContent = weekData.totalDiamond || 0;
-  totalPesoSpan.textContent = weekData.totalPeso || 0;
+  if (!weekDoc.exists()) {
+    participationList.innerHTML = `<p class="text-red-400">No data found for this week.</p>`;
+    return;
+  }
 
-  const snapshot = await getDocs(collection(dbView, "weeks", currentWeekId, "participations"));
+  const weekData = weekDoc.data();
+  const totalDia = weekData.totalDiamonds || 0;
+  const totalPhp = weekData.totalPeso || 0;
 
-  const memberMap = {};
-  members.forEach(m => memberMap[m.id] = m.name);
+  totalDiamonds.textContent = totalDia;
+  totalPeso.textContent = `₱ ${Number(totalPhp).toLocaleString()}`;
 
-  viewDashboard.innerHTML = "";
-  snapshot.forEach(docSnap => {
-    const data = docSnap.data();
-    const bossName = bosses.find(b => b.id === data.bossId)?.name || "Unknown Boss";
-    const timestamp = data.timestamp?.toDate ? data.timestamp.toDate() : new Date();
-    const timeStr = timestamp.toLocaleString("en-US", {
-      month: "short", day: "numeric",
-      hour: "2-digit", minute: "2-digit",
-      hour12: true
+  // ===================== MEMBERS =====================
+  const membersRef = collection(db, "members");
+  const membersSnap = await getDocs(membersRef);
+  const members = membersSnap.docs.map((d) => ({
+    id: d.id,
+    name: d.data().name,
+  }));
+
+  // ===================== PARTICIPATION =====================
+  const partRef = collection(db, "participation");
+  const qParts = query(partRef, where("weekId", "==", weekId));
+  const partsSnap = await getDocs(qParts);
+
+  let totalParticipationsCount = 0;
+  const memberCountMap = {};
+  const bossList = [];
+
+  partsSnap.forEach((docSnap) => {
+    const p = docSnap.data();
+    totalParticipationsCount++;
+    p.members.forEach((mId) => {
+      memberCountMap[mId] = (memberCountMap[mId] || 0) + 1;
     });
-    const participantNames = data.members.map(id => memberMap[id] || "Unknown").join(", ");
+    bossList.push(p);
+  });
+
+  totalParticipations.textContent = totalParticipationsCount;
+  totalMembers.textContent = members.length;
+
+  // ===================== DISPLAY MEMBER PARTICIPATION =====================
+  participationList.innerHTML = "";
+  members.sort((a, b) => a.name.localeCompare(b.name));
+  members.forEach((m) => {
+    const count = memberCountMap[m.id] || 0;
+    const div = document.createElement("div");
+    div.className = "flex justify-between bg-gray-700 px-3 py-2 rounded";
+    div.innerHTML = `
+      <span>${m.name}</span>
+      <span class="text-emerald-400">${count} hunts</span>
+    `;
+    participationList.appendChild(div);
+  });
+
+  // ===================== DISPLAY BOSS PARTICIPANTS =====================
+  bossParticipantsList.innerHTML = "";
+  for (const b of bossList) {
+    const date = new Date(b.time).toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: true,
+    });
+
+    const memberNames = b.members
+      .map((mId) => members.find((mem) => mem.id === mId)?.name || "Unknown")
+      .join(", ");
 
     const div = document.createElement("div");
-    div.className = "border-b py-2";
+    div.className = "bg-gray-700 p-3 rounded";
     div.innerHTML = `
-      <strong>${bossName}</strong> - ${timeStr}<br>
-      <span class="text-sm text-gray-600">Participants: ${participantNames}</span><br>
-      <span class="text-sm text-gray-600">💎 ${data.totalDiamond || 0} | ₱ ${data.totalPeso || 0}</span>
+      <p class="font-semibold text-yellow-400">${b.bossName}</p>
+      <p class="text-sm text-gray-300">${date}</p>
+      <p class="text-sm text-gray-200">Participants: ${memberNames}</p>
     `;
-    viewDashboard.appendChild(div);
-  });
+    bossParticipantsList.appendChild(div);
+  }
 }
 
-// ------------------- Week Change
-weekSelector.addEventListener("change", e => {
-  currentWeekId = e.target.value;
-  loadDashboard();
-});
+// ===================== EVENTS =====================
+weekSelect.addEventListener("change", (e) => loadWeekData(e.target.value));
 
-// ------------------- Initial Load
-(async function init() {
-  await loadMembers();
-  await loadBosses();
-  await loadWeeks();
-})();
+// ===================== INITIALIZE =====================
+window.onload = loadWeeks;
