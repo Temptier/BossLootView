@@ -3,90 +3,117 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Guild Boss Tracker - Admin</title>
-  <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+  <title>Guild Loots Admin Dashboard</title>
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center p-6">
+<body class="bg-gray-100 text-gray-800 p-4">
+  <h1 class="text-2xl font-bold mb-4 text-center">Guild Loots - Admin Dashboard</h1>
 
-  <!-- 🔐 LOGIN SCREEN -->
-  <div id="loginScreen" class="w-full max-w-sm bg-gray-800 p-6 rounded-2xl shadow-lg text-center mt-20">
-    <h2 class="text-2xl font-bold text-emerald-400 mb-4">Admin Login</h2>
-    <input id="adminPassword" type="password" placeholder="Enter password"
-      class="w-full p-2 rounded bg-gray-700 text-white focus:outline-none" />
-    <button id="loginBtn"
-      class="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 p-2 rounded font-semibold transition">Login</button>
-    <p id="loginError" class="text-red-400 mt-2 hidden">Incorrect password!</p>
-  </div>
+  <!-- LOGIN SECTION -->
+  <section id="loginSection" class="max-w-md mx-auto bg-white p-4 rounded-lg shadow">
+    <h2 class="text-xl font-semibold mb-2 text-center">Admin Login</h2>
+    <input
+      type="password"
+      id="passwordInput"
+      placeholder="Enter admin password"
+      class="w-full border border-gray-300 rounded p-2 mb-3"
+    />
+    <button
+      id="loginBtn"
+      class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
+    >Login</button>
+  </section>
 
-  <!-- ⚙️ ADMIN PANEL -->
-  <div id="adminPanel" class="hidden w-full max-w-5xl bg-gray-800 rounded-2xl p-6 shadow-xl mt-8">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold text-emerald-400">Guild Admin Dashboard</h1>
-      <button id="logoutBtn"
-        class="bg-red-500 hover:bg-red-600 px-3 py-2 rounded-lg font-semibold transition">Logout</button>
+  <!-- ADMIN SECTION -->
+  <section id="adminSection" class="hidden mt-6">
+    <!-- WEEK SELECT -->
+    <div class="bg-white rounded-lg shadow p-4 mb-4">
+      <h2 class="text-xl font-semibold mb-2">Select Week</h2>
+      <select id="weekSelect" class="border border-gray-300 rounded p-2 w-full mb-2"></select>
     </div>
 
-    <!-- 🔹 Week Selector -->
-    <div class="mb-6">
-      <label class="block text-sm font-semibold mb-2 text-gray-300">Select Week</label>
-      <select id="weekSelect" class="p-2 bg-gray-700 rounded-lg text-white w-full"></select>
-      <button id="createWeekBtn"
-        class="mt-3 bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg font-semibold transition">+ Create Week if Missing</button>
+    <!-- ADD BOSS PARTICIPATION -->
+    <div class="bg-white rounded-lg shadow p-4 mb-4">
+      <h2 class="text-xl font-semibold mb-2">Add Boss Participation</h2>
+      <label class="block mb-1">Select Boss:</label>
+      <select id="bossSelect" class="border border-gray-300 rounded p-2 w-full mb-3"></select>
+
+      <label class="block mb-1">Select Members:</label>
+      <div id="memberList" class="border border-gray-200 rounded p-3 h-48 overflow-y-auto bg-gray-50 mb-3"></div>
+
+      <button
+        id="addParticipationBtn"
+        class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded"
+      >Add Participation</button>
     </div>
 
-    <!-- 💎 Weekly Earnings -->
-    <div class="bg-gray-700 p-4 rounded-xl mb-6">
-      <h2 class="text-xl font-semibold text-emerald-400 mb-3">Weekly Earnings</h2>
-      <div class="grid grid-cols-2 gap-4">
-        <input id="totalDiamond" type="number" placeholder="💎 Diamond"
-          class="p-2 rounded bg-gray-800 text-white focus:outline-none" />
-        <input id="totalPeso" type="number" placeholder="₱ Peso"
-          class="p-2 rounded bg-gray-800 text-white focus:outline-none" />
-      </div>
-      <button id="updateEarningsBtn"
-        class="mt-4 w-full bg-emerald-500 hover:bg-emerald-600 p-2 rounded font-semibold transition">Update Total Weekly Earnings</button>
-    </div>
-
-    <!-- 👥 Add Guild Member -->
-    <div class="bg-gray-700 p-4 rounded-xl mb-6">
-      <h2 class="text-xl font-semibold text-emerald-400 mb-3">Add Guild Member</h2>
+    <!-- ADD GLOBAL BOSSES -->
+    <div class="bg-white rounded-lg shadow p-4 mb-4">
+      <h2 class="text-xl font-semibold mb-2">Add Global Boss</h2>
       <div class="flex gap-2">
-        <input id="newMemberName" type="text" placeholder="Enter member name"
-          class="flex-1 p-2 rounded bg-gray-800 text-white focus:outline-none" />
-        <button id="addMemberBtn"
-          class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg font-semibold transition">Add</button>
+        <input
+          id="bossName"
+          type="text"
+          placeholder="Enter boss name"
+          class="border border-gray-300 rounded p-2 w-full"
+        />
+        <button
+          id="addBossBtn"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+        >Add</button>
       </div>
-      <ul id="memberList" class="mt-3 text-gray-300 text-sm"></ul>
     </div>
 
-    <!-- 🧟‍♂️ Add Boss Hunt -->
-    <div class="bg-gray-700 p-4 rounded-xl mb-6">
-      <h2 class="text-xl font-semibold text-emerald-400 mb-3">Add Boss Hunt</h2>
-      <input id="bossName" type="text" placeholder="Boss name"
-        class="w-full mb-3 p-2 rounded bg-gray-800 text-white focus:outline-none" />
-      <input id="bossDate" type="date"
-        class="w-full mb-3 p-2 rounded bg-gray-800 text-white focus:outline-none" />
-
-      <label class="block text-gray-300 mb-1">Select Members (Alphabetical):</label>
-      <div id="memberSelectList"
-        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto bg-gray-800 p-2 rounded"></div>
-      <div class="flex justify-end mt-2">
-        <button id="deselectAllBtn"
-          class="bg-gray-600 hover:bg-gray-700 px-3 py-1 rounded text-sm">Deselect All</button>
+    <!-- ADD MEMBER -->
+    <div class="bg-white rounded-lg shadow p-4 mb-4">
+      <h2 class="text-xl font-semibold mb-2">Add Member</h2>
+      <div class="flex gap-2">
+        <input
+          id="memberName"
+          type="text"
+          placeholder="Enter member name"
+          class="border border-gray-300 rounded p-2 w-full"
+        />
+        <button
+          id="addMemberBtn"
+          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+        >Add</button>
       </div>
-
-      <button id="addBossBtn"
-        class="mt-4 w-full bg-emerald-500 hover:bg-emerald-600 p-2 rounded font-semibold transition">Add Boss Record</button>
     </div>
 
-    <!-- 📜 Boss Participation List -->
-    <div class="bg-gray-700 p-4 rounded-xl">
-      <h2 class="text-xl font-semibold text-emerald-400 mb-3">Boss Hunts This Week</h2>
-      <div id="bossList" class="space-y-3 text-sm"></div>
+    <!-- UPDATE WEEKLY EARNINGS -->
+    <div class="bg-white rounded-lg shadow p-4 mb-4">
+      <h2 class="text-xl font-semibold mb-2">Update Weekly Earnings</h2>
+      <div class="flex flex-col md:flex-row gap-2 mb-2">
+        <input
+          id="pesoEarnings"
+          type="number"
+          placeholder="Peso Earnings"
+          class="border border-gray-300 rounded p-2 w-full"
+        />
+        <input
+          id="diamondEarnings"
+          type="number"
+          placeholder="Diamond Earnings"
+          class="border border-gray-300 rounded p-2 w-full"
+        />
+      </div>
+      <button
+        id="updateEarningsBtn"
+        class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded"
+      >Update Earnings</button>
     </div>
-  </div>
+
+    <!-- DASHBOARD -->
+    <div class="bg-white rounded-lg shadow p-4">
+      <h2 class="text-xl font-semibold mb-2">Dashboard (Current Week)</h2>
+      <div id="dashboard" class="bg-gray-50 border border-gray-200 rounded p-3 h-60 overflow-y-auto">
+        <p class="text-gray-500 text-sm">Loading data...</p>
+      </div>
+    </div>
+  </section>
 
   <script type="module" src="admin.js"></script>
 </body>
