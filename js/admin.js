@@ -1,7 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, collection, doc, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// ------------------- Firebase Admin (Editable)
+// ------------------- Firebase Admin
 const firebaseConfigAdmin = {
   apiKey: "AIzaSyBd1oHWW3HoQ6o9f3FP9W9aV1mqwEifQzw",
   authDomain: "guildlootsadmin.firebaseapp.com",
@@ -17,6 +17,7 @@ const dbAdmin = getFirestore(appAdmin);
 const weekSelector = document.getElementById("week-selector");
 const totalDiamondInput = document.getElementById("total-earnings-diamond");
 const totalPesoInput = document.getElementById("total-earnings-peso");
+const updateWeeklyEarningsBtn = document.getElementById("update-weekly-earnings-btn");
 const selectBossContainer = document.getElementById("select-boss-container");
 const selectMembersContainer = document.getElementById("select-members-container");
 const addParticipationBtn = document.getElementById("add-participation-btn");
@@ -119,15 +120,22 @@ async function ensureCurrentWeek() {
   endOfWeek.setHours(23,59,59,999);
 
   const weeksRef = collection(dbAdmin, "weeks");
-  const q = query(weeksRef, where("start", "<=", now), where("end", ">=", now));
-  const snapshot = await getDocs(q);
+  
+  const snapshot = await getDocs(weeksRef);
+  let weekExists = false;
 
-  if(snapshot.empty) {
-    await addDoc(weeksRef, { start: startOfWeek, end: endOfWeek });
-    console.log("Created new week");
+  snapshot.forEach(docSnap => {
+    const data = docSnap.data();
+    const start = data.start.toDate ? data.start.toDate() : new Date(data.start);
+    const end = data.end.toDate ? data.end.toDate() : new Date(data.end);
+    if(now >= start && now <= end) weekExists = true;
+  });
+
+  if(!weekExists) {
+    await addDoc(weeksRef, { start: startOfWeek, end: endOfWeek, totalDiamond:0, totalPeso:0 });
+    console.log("Created new week automatically");
   }
 
-  // Reload weeks and set currentWeekId
   await loadWeeks();
 }
 
@@ -140,8 +148,8 @@ async function loadWeeks() {
     const data = docSnap.data();
     const option = document.createElement("option");
     option.value = docSnap.id;
-    const start = new Date(data.start);
-    const end = new Date(data.end);
+    const start = data.start.toDate ? data.start.toDate() : new Date(data.start);
+    const end = data.end.toDate ? data.end.toDate() : new Date(data.end);
     option.textContent = `${start.toDateString()} - ${end.toDateString()}`;
     weekSelector.appendChild(option);
   });
@@ -150,11 +158,28 @@ async function loadWeeks() {
   loadDashboard();
 }
 
+// ------------------- Update Weekly Earnings
+updateWeeklyEarningsBtn.onclick = async () => {
+  if(!currentWeekId) return alert("No week selected");
+
+  const totalDiamond = parseFloat(totalDiamondInput.value) || 0;
+  const totalPeso = parseFloat(totalPesoInput.value) || 0;
+
+  const weekDocRef = doc(dbAdmin, "weeks", currentWeekId);
+  await updateDoc(weekDocRef, {
+    totalDiamond,
+    totalPeso
+  });
+
+  alert("Weekly earnings updated successfully!");
+  loadDashboard();
+};
+
 // ------------------- Add Participation
-addParticipationBtn.addEventListener("click", async()=>{
+addParticipationBtn.addEventListener("click", async () => {
   const bossId = selectBossContainer.querySelector("input[name=boss]:checked")?.value;
-  const selectedMembers = Array.from(selectMembersContainer.querySelectorAll("input[type=checkbox]:checked")).map(cb=>cb.value);
-  if(!bossId || selectedMembers.length===0) return alert("Select boss and members");
+  const selectedMembers = Array.from(selectMembersContainer.querySelectorAll("input[type=checkbox]:checked")).map(cb => cb.value);
+  if (!bossId || selectedMembers.length === 0) return alert("Select boss and members");
 
   const totalDiamond = parseFloat(totalDiamondInput.value) || 0;
   const totalPeso = parseFloat(totalPesoInput.value) || 0;
@@ -170,23 +195,25 @@ addParticipationBtn.addEventListener("click", async()=>{
   loadDashboard();
 });
 
-// ------------------- Dashboard
+// ------------------- Dashboard Rendering
 async function loadDashboard() {
-  if(!currentWeekId) return;
+  if (!currentWeekId) return;
   const snapshot = await getDocs(collection(dbAdmin, "weeks", currentWeekId, "participations"));
 
   const memberMap = {};
   members.forEach(m => memberMap[m.id] = m.name);
 
   adminDashboard.innerHTML = "";
-  snapshot.forEach(docSnap=>{
+  snapshot.forEach(docSnap => {
     const data = docSnap.data();
-    const bossName = bosses.find(b=>b.id===data.bossId)?.name || "Unknown Boss";
-    const timestamp = data.timestamp?.toDate();
+    const bossName = bosses.find(b => b.id === data.bossId)?.name || "Unknown Boss";
+    const timestamp = data.timestamp?.toDate ? data.timestamp.toDate() : new Date();
     const timeStr = timestamp ? timestamp.toLocaleString("en-US", {
-      month:"short", day:"numeric", hour:"2-digit", minute:"2-digit", hour12:true
+      month: "short", day: "numeric",
+      hour: "2-digit", minute: "2-digit",
+      hour12: true
     }) : "Unknown Time";
-    const participantNames = data.members.map(id=>memberMap[id]||"Unknown").join(", ");
+    const participantNames = data.members.map(id => memberMap[id] || "Unknown").join(", ");
 
     const div = document.createElement("div");
     div.className = "border-b py-2 flex justify-between items-center";
@@ -202,19 +229,19 @@ async function loadDashboard() {
       </div>
     `;
 
-    // Delete
-    div.querySelector(".delete-btn").onclick = async()=>{
-      if(confirm("Delete this entry?")){
+    // Delete Participation
+    div.querySelector(".delete-btn").onclick = async () => {
+      if (confirm("Delete this entry?")) {
         await deleteDoc(doc(dbAdmin, "weeks", currentWeekId, "participations", docSnap.id));
         loadDashboard();
       }
     };
 
-    // Edit
-    div.querySelector(".edit-btn").onclick = async()=>{
+    // Edit Participants
+    div.querySelector(".edit-btn").onclick = async () => {
       const newMembers = prompt("Edit member IDs (comma-separated):", data.members.join(","));
-      if(newMembers){
-        const newArray = newMembers.split(",").map(s=>s.trim()).filter(s=>s!=="");
+      if (newMembers) {
+        const newArray = newMembers.split(",").map(s => s.trim()).filter(s => s !== "");
         await updateDoc(doc(dbAdmin, "weeks", currentWeekId, "participations", docSnap.id), { members: newArray });
         loadDashboard();
       }
@@ -225,12 +252,14 @@ async function loadDashboard() {
 }
 
 // ------------------- Week Change
-weekSelector.addEventListener("change", e=>{
+weekSelector.addEventListener("change", e => {
   currentWeekId = e.target.value;
   loadDashboard();
 });
 
 // ------------------- Initial Load
-await loadMembers();
-await loadBosses();
-await ensureCurrentWeek(); // creates week if missing and loads week selector
+(async function init() {
+  await loadMembers();
+  await loadBosses();
+  await ensureCurrentWeek(); // creates week if missing and loads week selector
+})();
