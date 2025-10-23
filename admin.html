@@ -1,52 +1,191 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Guild Boss Tracker - Admin</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 p-4">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { getFirestore, collection, doc, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-  <h1 class="text-2xl font-bold mb-4">Guild Boss Tracker - Admin</h1>
+// ------------------- Firebase Admin
+const firebaseConfigAdmin = {
+  apiKey: "YOUR_PROJECT_A_APIKEY",
+  authDomain: "YOUR_PROJECT_A.firebaseapp.com",
+  projectId: "YOUR_PROJECT_A",
+  storageBucket: "YOUR_PROJECT_A.appspot.com",
+  messagingSenderId: "YOUR_PROJECT_A_MSID",
+  appId: "YOUR_PROJECT_A_APPID"
+};
+const appAdmin = initializeApp(firebaseConfigAdmin);
+const dbAdmin = getFirestore(appAdmin);
 
-  <!-- Week Selector -->
-  <div class="mb-4">
-    <label class="block font-semibold mb-1">Select Week:</label>
-    <select id="week-selector" class="border p-2 rounded w-full"></select>
-  </div>
+// ------------------- DOM Elements
+const weekSelector = document.getElementById("week-selector");
+const totalDiamondInput = document.getElementById("total-earnings-diamond");
+const totalPesoInput = document.getElementById("total-earnings-peso");
+const selectBossContainer = document.getElementById("select-boss-container");
+const selectMembersContainer = document.getElementById("select-members-container");
+const addParticipationBtn = document.getElementById("add-participation-btn");
+const deselectAllBtn = document.getElementById("deselect-all-btn");
+const adminDashboard = document.getElementById("admin-dashboard");
 
-  <!-- Total Earnings -->
-  <div class="mb-4">
-    <label class="block font-semibold mb-1">Total Earnings (Diamond 💎):</label>
-    <input type="number" id="total-earnings-diamond" class="border p-2 rounded w-full" placeholder="Enter total diamond earnings">
-  </div>
+let members = [];
+let bosses = [];
+let currentWeekId = null;
 
-  <div class="mb-4">
-    <label class="block font-semibold mb-1">Total Earnings (Peso ₱):</label>
-    <input type="number" id="total-earnings-peso" class="border p-2 rounded w-full" placeholder="Enter total peso earnings">
-  </div>
+// ------------------- Load Members
+async function loadMembers() {
+  const snapshot = await getDocs(collection(dbAdmin, "members"));
+  members = [];
+  snapshot.forEach(m => members.push({ id: m.id, name: m.data().name }));
+  members.sort((a,b)=> a.name.localeCompare(b.name));
+  renderMembers();
+}
 
-  <!-- Select Boss -->
-  <div class="mb-4">
-    <label class="block font-semibold mb-1">Select Boss:</label>
-    <div id="select-boss-container" class="mb-2"></div>
-  </div>
+// ------------------- Load Bosses
+async function loadBosses() {
+  const snapshot = await getDocs(collection(dbAdmin, "bosses"));
+  bosses = [];
+  snapshot.forEach(b => bosses.push({ id: b.id, name: b.data().name }));
+  bosses.sort((a,b)=> a.name.localeCompare(b.name));
+  renderBosses();
+}
 
-  <!-- Select Members -->
-  <div class="mb-4">
-    <label class="block font-semibold mb-1">Select Members:</label>
-    <div id="select-members-container" class="mb-2"></div>
-    <button id="deselect-all-btn" class="bg-red-500 text-white p-2 rounded mb-2">Deselect All Members</button>
-  </div>
+// ------------------- Render Bosses
+function renderBosses() {
+  selectBossContainer.innerHTML = "";
+  bosses.forEach(b => {
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "boss";
+    radio.value = b.id;
+    radio.id = `boss-${b.id}`;
+    const label = document.createElement("label");
+    label.htmlFor = `boss-${b.id}`;
+    label.textContent = b.name;
+    label.className = "mr-2";
+    selectBossContainer.appendChild(radio);
+    selectBossContainer.appendChild(label);
+  });
+}
 
-  <!-- Add Participation -->
-  <button id="add-participation-btn" class="bg-green-600 text-white p-2 rounded mb-4">Add Participation</button>
+// ------------------- Render Members
+function renderMembers() {
+  selectMembersContainer.innerHTML = "";
+  members.forEach(m => {
+    const checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.value = m.id;
+    checkbox.id = `member-${m.id}`;
+    const label = document.createElement("label");
+    label.htmlFor = `member-${m.id}`;
+    label.textContent = m.name;
+    label.className = "mr-2";
+    selectMembersContainer.appendChild(checkbox);
+    selectMembersContainer.appendChild(label);
+  });
+}
 
-  <!-- Dashboard -->
-  <h2 class="text-xl font-bold mb-2">Dashboard</h2>
-  <div id="admin-dashboard" class="bg-white p-4 rounded shadow max-h-[500px] overflow-y-auto"></div>
+// ------------------- Deselect All Members
+deselectAllBtn.onclick = () => {
+  selectMembersContainer.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
+};
 
-  <script type="module" src="js/admin.js"></script>
-</body>
-</html>
+// ------------------- Load Weeks
+async function loadWeeks() {
+  const snapshot = await getDocs(collection(dbAdmin, "weeks"));
+  weekSelector.innerHTML = "";
+  if(snapshot.empty) return;
+  snapshot.forEach(docSnap=>{
+    const data = docSnap.data();
+    const option = document.createElement("option");
+    option.value = docSnap.id;
+    const start = new Date(data.start);
+    const end = new Date(data.end);
+    option.textContent = `${start.toDateString()} - ${end.toDateString()}`;
+    weekSelector.appendChild(option);
+  });
+  currentWeekId = weekSelector.options[0]?.value;
+  weekSelector.value = currentWeekId;
+  loadDashboard();
+}
+
+// ------------------- Add Participation
+addParticipationBtn.addEventListener("click", async()=>{
+  const bossId = selectBossContainer.querySelector("input[name=boss]:checked")?.value;
+  const selectedMembers = Array.from(selectMembersContainer.querySelectorAll("input[type=checkbox]:checked")).map(cb=>cb.value);
+
+  if(!bossId || selectedMembers.length===0) return alert("Select boss and members");
+
+  const totalDiamond = parseFloat(totalDiamondInput.value) || 0;
+  const totalPeso = parseFloat(totalPesoInput.value) || 0;
+
+  await addDoc(collection(dbAdmin, "weeks", currentWeekId, "participations"), {
+    bossId,
+    members: selectedMembers,
+    totalDiamond,
+    totalPeso,
+    timestamp: serverTimestamp()
+  });
+
+  loadDashboard();
+});
+
+// ------------------- Dashboard
+async function loadDashboard() {
+  if(!currentWeekId) return;
+  const snapshot = await getDocs(collection(dbAdmin, "weeks", currentWeekId, "participations"));
+
+  const memberMap = {};
+  members.forEach(m => memberMap[m.id] = m.name);
+
+  adminDashboard.innerHTML = "";
+  snapshot.forEach(docSnap=>{
+    const data = docSnap.data();
+    const bossName = bosses.find(b=>b.id===data.bossId)?.name || "Unknown Boss";
+    const timestamp = data.timestamp?.toDate();
+    const timeStr = timestamp ? timestamp.toLocaleString("en-US", {
+      month:"short", day:"numeric", hour:"2-digit", minute:"2-digit", hour12:true
+    }) : "Unknown Time";
+    const participantNames = data.members.map(id=>memberMap[id]||"Unknown").join(", ");
+
+    const div = document.createElement("div");
+    div.className = "border-b py-2 flex justify-between items-center";
+    div.innerHTML = `
+      <div>
+        <strong>${bossName}</strong> - ${timeStr}<br>
+        <span class="text-sm text-gray-600">Participants: ${participantNames}</span><br>
+        <span class="text-sm text-gray-600">💎 ${data.totalDiamond || 0} | ₱ ${data.totalPeso || 0}</span>
+      </div>
+      <div>
+        <button class="bg-yellow-500 text-white p-1 rounded edit-btn">Edit</button>
+        <button class="bg-red-500 text-white p-1 rounded delete-btn ml-1">Delete</button>
+      </div>
+    `;
+
+    // Delete
+    div.querySelector(".delete-btn").onclick = async()=>{
+      if(confirm("Delete this entry?")){
+        await deleteDoc(doc(dbAdmin, "weeks", currentWeekId, "participations", docSnap.id));
+        loadDashboard();
+      }
+    };
+
+    // Edit
+    div.querySelector(".edit-btn").onclick = async()=>{
+      const newMembers = prompt("Edit member IDs (comma-separated):", data.members.join(","));
+      if(newMembers){
+        const newArray = newMembers.split(",").map(s=>s.trim()).filter(s=>s!=="");
+        await updateDoc(doc(dbAdmin, "weeks", currentWeekId, "participations", docSnap.id), { members: newArray });
+        loadDashboard();
+      }
+    };
+
+    adminDashboard.appendChild(div);
+  });
+}
+
+// ------------------- Week Change
+weekSelector.addEventListener("change", e=>{
+  currentWeekId = e.target.value;
+  loadDashboard();
+});
+
+// ------------------- Initial Load
+await loadMembers();
+await loadBosses();
+await loadWeeks();
