@@ -1,6 +1,17 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
+// ------------------- Admin Login
+const adminPassword = "YOUR_SECRET_PASSWORD"; // Change this to your secret password
+document.getElementById("admin-login-btn").onclick = () => {
+  const input = prompt("Enter admin password:");
+  if(input === adminPassword){
+    window.location.href = "admin.html"; // redirect to admin page
+  } else {
+    alert("Incorrect password");
+  }
+};
+
 // ------------------- Firebase Project (View-Only)
 const firebaseConfig = {
   apiKey: "AIzaSyCgkO44xHVeQv9XJvjIktAQhdet9J-6hvM",
