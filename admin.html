@@ -3,76 +3,50 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>GuildLoots Admin</title>
+  <title>Guild Loots Admin Panel</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-gray-100">
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center p-4">
 
-  <!-- 🔒 Login Screen -->
-  <div id="loginScreen" class="flex flex-col items-center justify-center h-screen space-y-4">
-    <h1 class="text-3xl font-bold text-amber-400">GuildLoots Admin</h1>
-    <p class="text-gray-400 text-sm">Enter admin password to continue</p>
-    <input id="adminPassword" type="password" placeholder="Password" class="px-4 py-2 rounded bg-gray-800 text-gray-200 outline-none w-64 text-center">
-    <button id="loginButton" class="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-black rounded font-semibold transition">Login</button>
-    <p id="loginError" class="text-red-400 text-sm hidden">Incorrect password.</p>
+  <!-- 🔒 LOGIN SECTION -->
+  <div id="loginSection" class="mt-32 w-full max-w-md bg-gray-800 p-6 rounded-xl shadow-lg text-center">
+    <h2 class="text-2xl font-bold mb-3">Admin Access</h2>
+    <p class="text-gray-400 mb-4">Enter password to manage records</p>
+    <input id="passwordInput" type="password" placeholder="Enter password"
+      class="w-full p-2 rounded bg-gray-700 text-gray-100 mb-3 focus:outline-none focus:ring-2 focus:ring-emerald-400">
+    <button id="loginBtn"
+      class="w-full bg-emerald-500 hover:bg-emerald-600 py-2 rounded font-semibold transition">
+      Login
+    </button>
   </div>
 
-  <!-- 🧭 Admin Dashboard (hidden until login) -->
-  <div id="adminDashboard" class="hidden p-6">
-    <h1 class="text-2xl font-bold text-amber-400 mb-4">⚔️ GuildLoots Admin Panel</h1>
+  <!-- ⚙️ ADMIN PANEL -->
+  <div id="adminPanel" class="hidden w-full max-w-2xl bg-gray-800 mt-10 p-6 rounded-xl shadow-xl">
+    <h2 class="text-2xl font-bold text-center mb-4">Guild Loots Admin Dashboard</h2>
 
-    <div class="mb-6 flex gap-3">
-      <button id="addMemberBtn" class="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded">Add Guild Member</button>
-      <button id="addBossBtn" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded">Add Boss</button>
-      <button id="updateEarningsBtn" class="bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded">Update Weekly Earnings</button>
+    <!-- Status -->
+    <p id="statusMessage" class="text-emerald-400 text-center mb-4"></p>
+
+    <!-- Action Buttons -->
+    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-center mb-6">
+      <button id="addMemberBtn" class="bg-emerald-600 hover:bg-emerald-700 py-2 rounded">Add Member</button>
+      <button id="addBossBtn" class="bg-emerald-600 hover:bg-emerald-700 py-2 rounded">Add Boss</button>
+      <button id="updateEarningsBtn" class="bg-blue-600 hover:bg-blue-700 py-2 rounded">Update Earnings</button>
+      <button id="deleteMemberBtn" class="bg-red-600 hover:bg-red-700 py-2 rounded">Delete Member</button>
+      <button id="deleteBossBtn" class="bg-red-600 hover:bg-red-700 py-2 rounded">Delete Boss</button>
+      <button id="refreshBtn" class="bg-yellow-600 hover:bg-yellow-700 py-2 rounded">Refresh Dashboard</button>
     </div>
 
-    <div id="statusMessage" class="text-emerald-400 font-semibold mb-3"></div>
-
-    <!-- Dashboard content -->
-    <iframe src="view.html" class="w-full h-[75vh] rounded-lg border border-gray-700"></iframe>
+    <!-- Dashboard -->
+    <div class="bg-gray-900 p-4 rounded-lg shadow-inner">
+      <h3 class="text-xl font-semibold mb-2 text-emerald-400">📊 Weekly Summary</h3>
+      <div id="weekSummary" class="space-y-2 text-gray-200">
+        <p class="text-gray-500">Loading weekly records...</p>
+      </div>
+    </div>
   </div>
 
-  <script type="module">
-    // ================= PASSWORD LOGIN SYSTEM =================
-    const loginScreen = document.getElementById('loginScreen');
-    const adminDashboard = document.getElementById('adminDashboard');
-    const loginButton = document.getElementById('loginButton');
-    const loginError = document.getElementById('loginError');
-    const adminPasswordInput = document.getElementById('adminPassword');
-
-    // Set your password here 🔑
-    const ADMIN_PASSWORD = "guild2025";
-
-    // Check if already logged in
-    if (localStorage.getItem("guildAdminAccess") === "true") {
-      loginScreen.classList.add("hidden");
-      adminDashboard.classList.remove("hidden");
-    }
-
-    loginButton.addEventListener("click", () => {
-      const enteredPassword = adminPasswordInput.value.trim();
-
-      if (enteredPassword === ADMIN_PASSWORD) {
-        localStorage.setItem("guildAdminAccess", "true");
-        loginScreen.classList.add("hidden");
-        adminDashboard.classList.remove("hidden");
-        loginError.classList.add("hidden");
-      } else {
-        loginError.classList.remove("hidden");
-      }
-    });
-
-    // Enter key trigger
-    adminPasswordInput.addEventListener("keypress", (e) => {
-      if (e.key === "Enter") loginButton.click();
-    });
-
-    // Logout support (optional)
-    window.logoutAdmin = function () {
-      localStorage.removeItem("guildAdminAccess");
-      location.reload();
-    };
-  </script>
+  <!-- Script -->
+  <script type="module" src="admin.js"></script>
 </body>
 </html>
