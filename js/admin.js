@@ -1,10 +1,10 @@
-// ---------- Firebase Setup ----------
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+// ===================== FIREBASE INIT =====================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import {
-  getFirestore, collection, getDocs, addDoc, doc, setDoc,
-  updateDoc, deleteDoc, onSnapshot, query, orderBy, serverTimestamp
-} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  getFirestore, collection, addDoc, getDocs, doc, updateDoc, deleteDoc, getDoc, setDoc
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
+// Firebase config (ADMIN)
 const firebaseConfig = {
   apiKey: "AIzaSyBd1oHWW3HoQ6o9f3FP9W9aV1mqwEifQzw",
   authDomain: "guildlootsadmin.firebaseapp.com",
@@ -17,214 +17,204 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ---------- DOM Elements ----------
-const loginScreen = document.getElementById("loginScreen");
-const adminPanel = document.getElementById("adminPanel");
+// ===================== LOGIN CONTROL =====================
+const loginSection = document.getElementById("loginSection");
+const adminSection = document.getElementById("adminSection");
 const loginBtn = document.getElementById("loginBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const loginError = document.getElementById("loginError");
-const adminPassword = document.getElementById("adminPassword");
+const passwordInput = document.getElementById("passwordInput");
 
-const weekSelect = document.getElementById("weekSelect");
-const createWeekBtn = document.getElementById("createWeekBtn");
-const totalDiamond = document.getElementById("totalDiamond");
-const totalPeso = document.getElementById("totalPeso");
-const updateEarningsBtn = document.getElementById("updateEarningsBtn");
+const ADMIN_PASSWORD = "guildadmin123"; // Change this if needed
+adminSection.style.display = "none";
 
-const newMemberName = document.getElementById("newMemberName");
-const addMemberBtn = document.getElementById("addMemberBtn");
-const memberList = document.getElementById("memberList");
-const memberSelectList = document.getElementById("memberSelectList");
-const deselectAllBtn = document.getElementById("deselectAllBtn");
-
-const bossName = document.getElementById("bossName");
-const bossDate = document.getElementById("bossDate");
-const addBossBtn = document.getElementById("addBossBtn");
-const bossList = document.getElementById("bossList");
-
-// ---------- Login / Logout ----------
-const ADMIN_PASS = "1"; // simple password; can be stored in env later
-
-loginBtn.onclick = () => {
-  if (adminPassword.value === ADMIN_PASS) {
-    loginScreen.classList.add("hidden");
-    adminPanel.classList.remove("hidden");
-  } else {
-    loginError.classList.remove("hidden");
-    setTimeout(() => loginError.classList.add("hidden"), 2000);
-  }
-};
-
-logoutBtn.onclick = () => {
-  adminPanel.classList.add("hidden");
-  loginScreen.classList.remove("hidden");
-  adminPassword.value = "";
-};
-
-// ---------- Week Management ----------
-async function loadWeeks() {
-  const q = query(collection(db, "weeks"), orderBy("startDate"));
-  const snap = await getDocs(q);
-  weekSelect.innerHTML = "";
-  snap.forEach(docSnap => {
-    const data = docSnap.data();
-    const start = new Date(data.startDate?.toDate ? data.startDate.toDate() : data.startDate);
-    const end = new Date(data.endDate?.toDate ? data.endDate.toDate() : data.endDate);
-    const label = `${start.toDateString()} - ${end.toDateString()}`;
-    const opt = document.createElement("option");
-    opt.value = docSnap.id;
-    opt.textContent = label;
-    weekSelect.appendChild(opt);
-  });
-}
-
-async function createWeekIfMissing() {
-  const today = new Date();
-  const monday = new Date(today);
-  monday.setDate(today.getDate() - ((today.getDay() + 6) % 7));
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6);
-
-  const q = query(collection(db, "weeks"));
-  const snap = await getDocs(q);
-  let exists = false;
-
-  snap.forEach(d => {
-    const data = d.data();
-    const s = new Date(data.startDate?.toDate ? data.startDate.toDate() : data.startDate);
-    const e = new Date(data.endDate?.toDate ? data.endDate.toDate() : data.endDate);
-    if (monday >= s && monday <= e) exists = true;
-  });
-
-  if (!exists) {
-    await addDoc(collection(db, "weeks"), {
-      startDate: monday,
-      endDate: sunday,
-      totalDiamond: 0,
-      totalPeso: 0,
-      createdAt: serverTimestamp()
-    });
-    alert("✅ New week automatically created!");
+loginBtn.addEventListener("click", () => {
+  const enteredPassword = passwordInput.value.trim();
+  if (enteredPassword === ADMIN_PASSWORD) {
+    loginSection.style.display = "none";
+    adminSection.style.display = "block";
+    alert("✅ Access granted! Welcome, Admin.");
     loadWeeks();
   } else {
-    alert("✅ Current week already exists.");
+    alert("❌ Incorrect password. Please try again.");
+    passwordInput.value = "";
+  }
+});
+
+// ===================== AUTO WEEK CREATION =====================
+async function ensureCurrentWeekExists() {
+  const now = new Date();
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay() + 1);
+  const weekId = startOfWeek.toISOString().split("T")[0];
+
+  const weekRef = doc(db, "weeks", weekId);
+  const weekSnap = await getDoc(weekRef);
+
+  if (!weekSnap.exists()) {
+    await setDoc(weekRef, {
+      weekId,
+      createdAt: new Date().toISOString(),
+      totalPeso: 0,
+      totalDiamond: 0,
+    });
+    console.log(`🆕 Created new week: ${weekId}`);
   }
 }
 
-createWeekBtn.onclick = createWeekIfMissing;
+// ===================== LOAD WEEKS =====================
+async function loadWeeks() {
+  await ensureCurrentWeekExists();
+  const weekSelect = document.getElementById("weekSelect");
+  weekSelect.innerHTML = "";
 
-// ---------- Update Weekly Earnings ----------
-updateEarningsBtn.onclick = async () => {
-  const weekId = weekSelect.value;
-  if (!weekId) return alert("Select a week first!");
-  const ref = doc(db, "weeks", weekId);
-  await updateDoc(ref, {
-    totalDiamond: Number(totalDiamond.value) || 0,
-    totalPeso: Number(totalPeso.value) || 0
-  });
-  alert("✅ Weekly earnings updated!");
-};
-
-// ---------- Members ----------
-async function loadMembers() {
-  const snap = await getDocs(collection(db, "members"));
-  let members = [];
-  snap.forEach(d => members.push({ id: d.id, ...d.data() }));
-  members.sort((a, b) => a.name.localeCompare(b.name));
-
-  memberList.innerHTML = "";
-  memberSelectList.innerHTML = "";
-
-  members.forEach(mem => {
-    const li = document.createElement("li");
-    li.textContent = mem.name;
-    li.className = "flex justify-between items-center py-1";
-    const del = document.createElement("button");
-    del.textContent = "🗑️";
-    del.className = "text-red-400 hover:text-red-600";
-    del.onclick = async () => {
-      await deleteDoc(doc(db, "members", mem.id));
-      loadMembers();
-    };
-    li.appendChild(del);
-    memberList.appendChild(li);
-
-    // checkbox for participation
-    const box = document.createElement("label");
-    box.className = "flex items-center space-x-2 text-sm";
-    box.innerHTML = `<input type='checkbox' value='${mem.name}' class='memberCheck accent-emerald-500'/> <span>${mem.name}</span>`;
-    memberSelectList.appendChild(box);
+  const querySnapshot = await getDocs(collection(db, "weeks"));
+  querySnapshot.forEach((docSnap) => {
+    const data = docSnap.data();
+    const option = document.createElement("option");
+    const date = new Date(data.weekId);
+    option.value = docSnap.id;
+    option.textContent = date.toDateString();
+    weekSelect.appendChild(option);
   });
 }
 
-addMemberBtn.onclick = async () => {
-  const name = newMemberName.value.trim();
-  if (!name) return alert("Enter a name!");
-  const all = await getDocs(collection(db, "members"));
-  let exists = false;
-  all.forEach(d => { if (d.data().name.toLowerCase() === name.toLowerCase()) exists = true; });
-  if (exists) return alert("❌ Member already exists!");
+// ===================== ADD MEMBER =====================
+document.getElementById("addMemberBtn").addEventListener("click", async () => {
+  const name = document.getElementById("memberName").value.trim();
+  if (!name) return alert("Enter a member name");
 
-  await addDoc(collection(db, "members"), { name });
-  newMemberName.value = "";
+  const membersRef = collection(db, "members");
+  const snapshot = await getDocs(membersRef);
+  const exists = snapshot.docs.some(doc => doc.data().name.toLowerCase() === name.toLowerCase());
+  if (exists) return alert("⚠️ Member already exists!");
+
+  await addDoc(membersRef, { name });
+  alert("✅ Member added!");
+  document.getElementById("memberName").value = "";
   loadMembers();
-};
+});
 
-// ---------- Boss Hunts ----------
-addBossBtn.onclick = async () => {
-  const weekId = weekSelect.value;
-  if (!weekId) return alert("Select a week first!");
-  const boss = bossName.value.trim();
-  const date = bossDate.value;
-  if (!boss || !date) return alert("Enter boss and date!");
+// ===================== ADD BOSS =====================
+document.getElementById("addBossBtn").addEventListener("click", async () => {
+  const name = document.getElementById("bossName").value.trim();
+  if (!name) return alert("Enter a boss name");
 
-  const selected = [...document.querySelectorAll(".memberCheck:checked")].map(i => i.value);
-  if (!selected.length) return alert("Select at least one member!");
+  const bossesRef = collection(db, "bosses");
+  const snapshot = await getDocs(bossesRef);
+  const exists = snapshot.docs.some(doc => doc.data().name.toLowerCase() === name.toLowerCase());
+  if (exists) return alert("⚠️ Boss already exists!");
 
-  await addDoc(collection(db, "weeks", weekId, "bossHunts"), {
-    boss,
-    date,
-    participants: selected,
-    createdAt: serverTimestamp()
-  });
+  await addDoc(bossesRef, { name });
+  alert("✅ Boss added!");
+  document.getElementById("bossName").value = "";
+  loadBosses();
+});
 
-  bossName.value = "";
-  bossDate.value = "";
-  document.querySelectorAll(".memberCheck").forEach(c => c.checked = false);
-};
-
+// ===================== LOAD BOSSES & MEMBERS =====================
 async function loadBosses() {
-  const weekId = weekSelect.value;
-  if (!weekId) return;
-  const q = query(collection(db, "weeks", weekId, "bossHunts"), orderBy("createdAt"));
-  onSnapshot(q, snap => {
-    bossList.innerHTML = "";
-    snap.forEach(d => {
-      const data = d.data();
-      const div = document.createElement("div");
-      div.className = "bg-gray-800 p-3 rounded-lg";
-      div.innerHTML = `
-        <div class='flex justify-between items-center'>
-          <span class='font-semibold text-emerald-400'>${data.boss}</span>
-          <button class='text-red-400 hover:text-red-600 text-sm' id='del-${d.id}'>Delete</button>
-        </div>
-        <div class='text-gray-400 text-sm'>
-          ${new Date(data.date).toLocaleString()}
-        </div>
-        <div class='text-sm text-gray-300 mt-1'>
-          Participants: ${data.participants.join(", ")}
-        </div>`;
-      bossList.appendChild(div);
-      document.getElementById(`del-${d.id}`).onclick = async () => {
-        await deleteDoc(doc(db, "weeks", weekId, "bossHunts", d.id));
-      };
-    });
+  const bossSelect = document.getElementById("bossSelect");
+  bossSelect.innerHTML = "";
+  const querySnapshot = await getDocs(collection(db, "bosses"));
+  const bosses = querySnapshot.docs.map(doc => doc.data().name).sort((a, b) => a.localeCompare(b));
+  bosses.forEach(name => {
+    const option = document.createElement("option");
+    option.value = name;
+    option.textContent = name;
+    bossSelect.appendChild(option);
   });
 }
 
-weekSelect.onchange = () => loadBosses();
-deselectAllBtn.onclick = () => document.querySelectorAll(".memberCheck").forEach(c => (c.checked = false));
+async function loadMembers() {
+  const memberList = document.getElementById("memberList");
+  memberList.innerHTML = "";
 
-// ---------- Initial Load ----------
-loadWeeks();
-loadMembers();
+  const querySnapshot = await getDocs(collection(db, "members"));
+  const members = querySnapshot.docs.map(doc => doc.data().name).sort((a, b) => a.localeCompare(b));
+
+  members.forEach(name => {
+    const div = document.createElement("div");
+    div.className = "flex items-center gap-2";
+    div.innerHTML = `
+      <input type="checkbox" class="memberCheckbox" value="${name}">
+      <label>${name}</label>
+    `;
+    memberList.appendChild(div);
+  });
+
+  // Add deselect all button
+  const deselectBtn = document.createElement("button");
+  deselectBtn.textContent = "Deselect All";
+  deselectBtn.className = "mt-2 px-2 py-1 bg-gray-400 text-white rounded";
+  deselectBtn.addEventListener("click", () => {
+    document.querySelectorAll(".memberCheckbox").forEach(cb => (cb.checked = false));
+  });
+  memberList.appendChild(deselectBtn);
+}
+
+// ===================== ADD PARTICIPATION =====================
+document.getElementById("addParticipationBtn").addEventListener("click", async () => {
+  const boss = document.getElementById("bossSelect").value;
+  const weekId = document.getElementById("weekSelect").value;
+  const selectedMembers = Array.from(document.querySelectorAll(".memberCheckbox:checked")).map(cb => cb.value);
+
+  if (!boss || selectedMembers.length === 0) {
+    return alert("⚠️ Please select a boss and at least one member!");
+  }
+
+  await addDoc(collection(db, "participations"), {
+    boss,
+    members: selectedMembers,
+    weekId,
+    timestamp: new Date().toISOString(),
+  });
+
+  alert("✅ Participation added!");
+  loadDashboard();
+});
+
+// ===================== UPDATE WEEKLY EARNINGS =====================
+document.getElementById("updateEarningsBtn").addEventListener("click", async () => {
+  const weekId = document.getElementById("weekSelect").value;
+  const peso = parseFloat(document.getElementById("pesoEarnings").value) || 0;
+  const diamond = parseFloat(document.getElementById("diamondEarnings").value) || 0;
+
+  const weekRef = doc(db, "weeks", weekId);
+  await updateDoc(weekRef, { totalPeso: peso, totalDiamond: diamond });
+  alert("💰 Weekly earnings updated!");
+  loadDashboard();
+});
+
+// ===================== LOAD DASHBOARD =====================
+async function loadDashboard() {
+  const weekId = document.getElementById("weekSelect").value;
+  const dashContainer = document.getElementById("dashboard");
+  dashContainer.innerHTML = "";
+
+  const partSnap = await getDocs(collection(db, "participations"));
+  const membersSnap = await getDocs(collection(db, "members"));
+
+  const memberData = {};
+  membersSnap.forEach(docSnap => (memberData[docSnap.data().name] = 0));
+
+  partSnap.forEach(docSnap => {
+    const data = docSnap.data();
+    if (data.weekId === weekId) {
+      data.members.forEach(name => {
+        if (memberData[name] !== undefined) memberData[name]++;
+      });
+    }
+  });
+
+  const list = Object.entries(memberData)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => `<div class="flex justify-between"><span>${name}</span><span>${count}</span></div>`)
+    .join("");
+
+  dashContainer.innerHTML = `<div class="p-4 bg-gray-100 rounded">${list}</div>`;
+}
+
+// ===================== INITIAL LOAD =====================
+window.addEventListener("DOMContentLoaded", async () => {
+  loadWeeks();
+  loadBosses();
+  loadMembers();
+});
