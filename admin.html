@@ -7,10 +7,14 @@
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<button class="back-btn" onclick="location.href='index.html'">Back</button>
-<h1>Guild Boss Loot - Admin</h1>
 
-<!-- ===== Add Boss / Add Member (Above Boss Loot Panel) ===== -->
+<!-- ===== Header & Back Button ===== -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
+    <button class="back-btn" onclick="location.href='index.html'">Back</button>
+    <h1>Guild Boss Loot - Admin</h1>
+</div>
+
+<!-- ===== Add Boss / Add Member Panel ===== -->
 <div class="panel">
     <h2>Add Boss / Add Member</h2>
     <div class="typing-slot">
@@ -34,7 +38,7 @@
         <button onclick="confirmSelection()">Confirm Selection</button>
     </div>
 
-    <!-- Loot Input (above Selected Boss) -->
+    <!-- Loot Input -->
     <div class="typing-slot">
         <input type="text" id="loot-name" placeholder="Loot Item Name">
         <input type="number" id="loot-price" placeholder="Price">
@@ -56,8 +60,8 @@
         </div>
     </div>
 
-    <!-- Add Loot Entry -->
-    <div class="input-slot">
+    <!-- Add Loot Entry Button -->
+    <div class="input-slot" style="margin-top:15px;">
         <button onclick="addNewLootEntry()">Add New Loot Entry</button>
     </div>
 </div>
