@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guild Boss Hunt Tracker – Admin Login</title>
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="bg-gray-900 text-gray-100 min-h-screen flex items-center justify-center">
+  <div class="bg-gray-800 p-8 rounded-2xl shadow-lg w-full max-w-sm text-center">
+    <h1 class="text-2xl font-bold mb-6">⚔️ Admin Access</h1>
+    
+    <div class="mb-4 text-left">
+      <label for="password" class="block text-sm mb-2">Enter Admin Password</label>
+      <input 
+        id="password"
+        type="password"
+        class="w-full bg-gray-700 text-white p-2 rounded-lg focus:outline-none"
+        placeholder="••••••••"
+      />
+    </div>
+
+    <button
+      id="loginBtn"
+      class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 rounded-lg"
+    >
+      🔐 Login
+    </button>
+
+    <p id="errorMsg" class="text-red-500 mt-3 hidden">Invalid password. Try again.</p>
+  </div>
+
+  <script type="module" src="login.js"></script>
+</body>
+</html>
