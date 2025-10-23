@@ -3,44 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Guild Boss Hunt Tracker (View Only)</title>
+  <title>Guild Loots Tracker - View</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center p-4">
-  <header class="flex justify-between w-full max-w-4xl items-center mb-6">
-    <h1 class="text-2xl font-bold text-emerald-400">🏹 Guild Boss Hunt Tracker</h1>
-    <button id="adminBtn" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1 rounded-lg text-sm font-semibold">
+
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center p-4">
+
+  <!-- 🌟 HEADER -->
+  <header class="flex justify-between items-center w-full max-w-3xl mb-6">
+    <h1 class="text-2xl font-bold text-emerald-400">Guild Loots Tracker</h1>
+    <button id="adminBtn"
+      class="bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded font-semibold transition">
       Admin
     </button>
   </header>
 
-  <main class="w-full max-w-4xl space-y-6">
-    <!-- Week Selection -->
-    <section class="bg-gray-800 p-4 rounded-xl shadow-lg">
-      <h2 class="text-lg font-semibold mb-2 text-emerald-400">📅 Select Week</h2>
-      <select id="weekSelect" class="w-full p-2 rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-emerald-500"></select>
-    </section>
+  <!-- WEEK SELECTOR -->
+  <div class="w-full max-w-3xl bg-gray-800 p-4 rounded-xl mb-5 shadow-lg">
+    <label for="weekSelect" class="block text-gray-300 mb-2 font-semibold">Select Week:</label>
+    <select id="weekSelect" class="w-full p-2 rounded bg-gray-700 text-gray-100 focus:ring-2 focus:ring-emerald-400">
+      <option>Loading weeks...</option>
+    </select>
+  </div>
 
-    <!-- Weekly Earnings -->
-    <section class="bg-gray-800 p-4 rounded-xl shadow-lg">
-      <h2 class="text-lg font-semibold mb-3 text-emerald-400">💰 Weekly Earnings</h2>
-      <div id="earningsDiamond" class="text-lg text-emerald-300">💎 Diamond: 0</div>
-      <div id="earningsPeso" class="text-lg text-emerald-300">₱ Peso: 0</div>
-    </section>
+  <!-- 💎 WEEKLY EARNINGS -->
+  <div class="w-full max-w-3xl bg-gray-800 p-4 rounded-xl mb-6 shadow-lg">
+    <h2 class="text-xl font-bold text-emerald-400 mb-2">Weekly Earnings</h2>
+    <p id="earningsDiamond" class="text-lg mb-1">💎 Diamond: 0</p>
+    <p id="earningsPeso" class="text-lg">₱ Peso: 0</p>
+  </div>
 
-    <!-- Boss Participants -->
-    <section class="bg-gray-800 p-4 rounded-xl shadow-lg">
-      <h2 class="text-lg font-semibold mb-3 text-emerald-400">⚔️ Boss Participants</h2>
-      <div id="participationList" class="space-y-2"></div>
-    </section>
+  <!-- ⚔️ PARTICIPATION LIST -->
+  <div class="w-full max-w-3xl bg-gray-800 p-4 rounded-xl shadow-lg mb-8">
+    <h2 class="text-xl font-bold text-emerald-400 mb-3">Boss Participants</h2>
+    <div id="participationList" class="space-y-3">
+      <p class="text-gray-500">Loading participation data...</p>
+    </div>
+  </div>
 
-    <!-- Member Summary -->
-    <section class="bg-gray-800 p-4 rounded-xl shadow-lg">
-      <h2 class="text-lg font-semibold mb-3 text-emerald-400">📊 Member Participation Summary</h2>
-      <div id="memberSummary" class="space-y-1 text-sm"></div>
-    </section>
-  </main>
+  <!-- 🧮 MEMBER SUMMARY -->
+  <div class="w-full max-w-3xl bg-gray-800 p-4 rounded-xl shadow-lg">
+    <h2 class="text-xl font-bold text-emerald-400 mb-3">Member Participation Summary</h2>
+    <div id="memberSummary" class="space-y-2 text-gray-200">
+      <p class="text-gray-500">Loading member data...</p>
+    </div>
+  </div>
 
+  <!-- FOOTER -->
+  <footer class="mt-10 text-gray-500 text-sm">
+    Guild Loots Tracker © 2025
+  </footer>
+
+  <!-- Script -->
   <script type="module" src="view.js"></script>
 </body>
 </html>
