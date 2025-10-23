@@ -10,21 +10,9 @@
 <button class="back-btn" onclick="location.href='index.html'">Back</button>
 <h1>Guild Boss Loot - Admin</h1>
 
-<!-- --- Top Panel: Boss Loot --- -->
+<!-- ===== Boss Loot Panel ===== -->
 <div class="panel">
     <h2>Boss Loot Panel</h2>
-
-    <!-- Selected Boss & Participants List -->
-    <div class="list-container">
-        <div class="list">
-            <h3>Selected Boss</h3>
-            <ul id="selected-boss"></ul>
-        </div>
-        <div class="list">
-            <h3>Participants List</h3>
-            <ul id="participant-list"></ul>
-        </div>
-    </div>
 
     <!-- Add Boss / Add Member / Select Participants -->
     <div class="typing-slot">
@@ -41,21 +29,35 @@
         <button onclick="confirmSelection()">Confirm Selection</button>
     </div>
 
-    <!-- Loot Entry -->
+    <!-- Selected Boss / Participants List -->
+    <div class="list-container">
+        <div class="list">
+            <h3>Selected Boss</h3>
+            <ul id="selected-boss"></ul>
+        </div>
+        <div class="list">
+            <h3>Participants List</h3>
+            <ul id="participant-list"></ul>
+        </div>
+    </div>
+
+    <!-- Loot Input -->
     <div class="typing-slot">
         <input type="text" id="loot-name" placeholder="Loot Item Name">
         <input type="number" id="loot-price" placeholder="Price">
         <button onclick="addLootItem()">Add Loot Item</button>
     </div>
+
+    <!-- Temporary Loot Items -->
+    <div id="temp-loot-items" class="loot-list-container"></div>
+
+    <!-- Add Loot Entry -->
     <div class="input-slot">
         <button onclick="addNewLootEntry()">Add New Loot Entry</button>
     </div>
-
-    <!-- Temporary Loot List -->
-    <div id="temp-loot-items" class="loot-list-container"></div>
 </div>
 
-<!-- --- Bottom Panel: Recorded Loot Entries --- -->
+<!-- ===== Recorded Loot Entries Panel ===== -->
 <div class="panel">
     <h2>Recorded Loot Entries</h2>
     <div id="loot-list"></div>
