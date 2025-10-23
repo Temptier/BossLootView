@@ -2,13 +2,13 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
 import { getFirestore, collection, doc, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 // ------------------- Firebase Admin
-const firebaseConfigAdmin = {
-  apiKey: "YOUR_PROJECT_A_APIKEY",
-  authDomain: "YOUR_PROJECT_A.firebaseapp.com",
-  projectId: "YOUR_PROJECT_A",
-  storageBucket: "YOUR_PROJECT_A.appspot.com",
-  messagingSenderId: "YOUR_PROJECT_A_MSID",
-  appId: "YOUR_PROJECT_A_APPID"
+const firebaseConfig = {
+  apiKey: "AIzaSyBd1oHWW3HoQ6o9f3FP9W9aV1mqwEifQzw",
+  authDomain: "guildlootsadmin.firebaseapp.com",
+  projectId: "guildlootsadmin",
+  storageBucket: "guildlootsadmin.firebasestorage.app",
+  messagingSenderId: "895884983655",
+  appId: "1:895884983655:web:2588fbb854394fb3ed43c2"
 };
 const appAdmin = initializeApp(firebaseConfigAdmin);
 const dbAdmin = getFirestore(appAdmin);
