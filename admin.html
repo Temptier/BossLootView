@@ -29,7 +29,7 @@
         <button onclick="confirmSelection()">Confirm Selection</button>
     </div>
 
-    <!-- Loot Input (moved above Selected Boss) -->
+    <!-- Loot Input (above Selected Boss) -->
     <div class="typing-slot">
         <input type="text" id="loot-name" placeholder="Loot Item Name">
         <input type="number" id="loot-price" placeholder="Price">
@@ -64,6 +64,21 @@
     <div class="summary-panel">
         <div><strong>Total Active Loot:</strong> <span id="total-active-loot">0</span></div>
         <div><strong>Active Share per Member:</strong> <span id="active-share-per-member">0</span></div>
+    </div>
+</div>
+
+<!-- ===== Boss & Member List Panel (Bottom) ===== -->
+<div class="panel">
+    <h2>All Bosses & Members</h2>
+    <div class="list-container">
+        <div class="list">
+            <h3>All Bosses</h3>
+            <ul id="all-bosses-list"></ul>
+        </div>
+        <div class="list">
+            <h3>All Members</h3>
+            <ul id="all-members-list"></ul>
+        </div>
     </div>
 </div>
 
