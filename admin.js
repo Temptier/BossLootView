@@ -9,6 +9,9 @@ const activeShareEl = document.getElementById('active-share-per-member');
 const modalBoss = document.getElementById('modal-boss');
 const modalMember = document.getElementById('modal-member');
 
+const allBossesList = document.getElementById('all-bosses-list');
+const allMembersList = document.getElementById('all-members-list');
+
 const allMembers = ['Member A','Member B','Member C','Member D'];
 let currentBoss = '';
 let currentParticipants = [];
@@ -31,6 +34,8 @@ function populateDropdowns() {
         opt.textContent = m;
         modalMember.appendChild(opt);
     });
+
+    updateAllLists();
 }
 populateDropdowns();
 
@@ -205,6 +210,25 @@ function saveEntries() {
     localStorage.setItem('guildLootEntries', JSON.stringify(entries));
 }
 
+// --- Update All Boss & Member Lists ---
+function updateAllLists() {
+    // Bosses
+    allBossesList.innerHTML = '';
+    Array.from(modalBoss.options).forEach(opt=>{
+        const li = document.createElement('li');
+        li.textContent = opt.value;
+        allBossesList.appendChild(li);
+    });
+
+    // Members
+    allMembersList.innerHTML = '';
+    allMembers.forEach(m=>{
+        const li = document.createElement('li');
+        li.textContent = m;
+        allMembersList.appendChild(li);
+    });
+}
+
 // --- Add New Boss dynamically ---
 function addNewBoss() {
     const name = document.getElementById('new-boss-name').value.trim();
@@ -215,8 +239,8 @@ function addNewBoss() {
         opt.textContent = name;
         modalBoss.appendChild(opt);
         modalBoss.value = name; // select immediately
-        alert(`Boss "${name}" added.`);
         document.getElementById('new-boss-name').value = '';
+        updateAllLists();
     } else alert("Boss already exists.");
 }
 
@@ -231,7 +255,7 @@ function addNewMember() {
         opt.textContent = name;
         modalMember.appendChild(opt);
         opt.selected = true; // select immediately
-        alert(`Member "${name}" added.`);
         document.getElementById('new-member-name').value = '';
+        updateAllLists();
     } else alert("Member already exists.");
 }
