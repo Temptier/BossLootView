@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guild Boss Loot - Admin</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<button class="back-btn" onclick="location.href='index.html'">Back</button>
+<h1>Guild Boss Loot - Admin</h1>
+
+<!-- Boss Loot Panel -->
+<div class="panel">
+<h2>Boss Loot Panel</h2>
+<p>Select a boss, participants, type loot, and click "Add New Loot Entry".</p>
+<button onclick="openModal()">Select Boss & Participants</button>
+
+<div class="list-container">
+    <div class="list">
+        <h3>Selected Boss</h3>
+        <ul id="selected-boss"></ul>
+    </div>
+    <div class="list">
+        <h3>Participants List</h3>
+        <ul id="participant-list"></ul>
+    </div>
+</div>
+
+<div class="typing-slot">
+    <input type="text" id="loot-name" placeholder="Loot Item Name">
+    <input type="number" id="loot-price" placeholder="Price">
+    <button onclick="addLootItem()">Add Loot Item</button>
+</div>
+
+<div class="input-slot">
+    <button onclick="addNewLootEntry()">Add New Loot Entry</button>
+</div>
+
+<div id="temp-loot-items" class="loot-list-container"></div>
+</div>
+
+<!-- Recorded Loot Entries Panel -->
+<div class="panel">
+<h2>Recorded Loot Entries</h2>
+<div id="loot-list"></div>
+<div class="summary-panel">
+    <div><strong>Total Active Loot:</strong> <span id="total-active-loot">0</span></div>
+    <div><strong>Active Share per Member:</strong> <span id="active-share-per-member">0</span></div>
+</div>
+</div>
+
+<!-- Modal -->
+<div id="entry-modal" class="modal">
+<div class="modal-content">
+    <h3>Select Boss and Participants</h3>
+    <select id="modal-boss"></select>
+    <br>
+    <select id="modal-member" multiple></select>
+    <br>
+    <button onclick="confirmSelection()">Confirm</button>
+    <button onclick="closeModal()">Cancel</button>
+</div>
+</div>
+
+<script src="admin.js"></script>
+</body>
+</html>
