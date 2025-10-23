@@ -3,117 +3,71 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Guild Loots Admin Dashboard</title>
-  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <title>Guild Boss Hunt Tracker – Admin</title>
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 
-<body class="bg-gray-100 text-gray-800 p-4">
-  <h1 class="text-2xl font-bold mb-4 text-center">Guild Loots - Admin Dashboard</h1>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 flex flex-col items-center">
 
-  <!-- LOGIN SECTION -->
-  <section id="loginSection" class="max-w-md mx-auto bg-white p-4 rounded-lg shadow">
-    <h2 class="text-xl font-semibold mb-2 text-center">Admin Login</h2>
-    <input
-      type="password"
-      id="passwordInput"
-      placeholder="Enter admin password"
-      class="w-full border border-gray-300 rounded p-2 mb-3"
-    />
-    <button
-      id="loginBtn"
-      class="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded"
-    >Login</button>
-  </section>
+  <!-- Logout Button -->
+  <div class="w-full max-w-5xl flex justify-end mb-4">
+    <button id="logoutBtn" class="bg-red-600 hover:bg-red-700 text-white px-3 py-2 rounded-lg font-semibold shadow-md">Logout</button>
+  </div>
 
-  <!-- ADMIN SECTION -->
-  <section id="adminSection" class="hidden mt-6">
-    <!-- WEEK SELECT -->
-    <div class="bg-white rounded-lg shadow p-4 mb-4">
-      <h2 class="text-xl font-semibold mb-2">Select Week</h2>
-      <select id="weekSelect" class="border border-gray-300 rounded p-2 w-full mb-2"></select>
+  <div class="w-full max-w-5xl bg-gray-800 p-6 rounded-2xl shadow-lg">
+
+    <h1 class="text-2xl font-bold mb-6 text-center">⚔️ Guild Boss Hunt Tracker (Admin)</h1>
+
+    <!-- Week Selector -->
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-2">
+      <div class="flex items-center gap-2">
+        <select id="weekSelect" class="bg-gray-700 text-white px-3 py-2 rounded-lg"></select>
+        <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">🔄 Refresh</button>
+      </div>
+      <span id="weekInfo" class="text-gray-300 font-medium"></span>
     </div>
 
-    <!-- ADD BOSS PARTICIPATION -->
-    <div class="bg-white rounded-lg shadow p-4 mb-4">
-      <h2 class="text-xl font-semibold mb-2">Add Boss Participation</h2>
-      <label class="block mb-1">Select Boss:</label>
-      <select id="bossSelect" class="border border-gray-300 rounded p-2 w-full mb-3"></select>
-
-      <label class="block mb-1">Select Members:</label>
-      <div id="memberList" class="border border-gray-200 rounded p-3 h-48 overflow-y-auto bg-gray-50 mb-3"></div>
-
-      <button
-        id="addParticipationBtn"
-        class="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded"
-      >Add Participation</button>
+    <!-- Earnings -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div class="bg-gray-700 p-4 rounded-lg">
+        <h2 class="text-lg font-semibold mb-2">💎 Total Diamonds</h2>
+        <input id="totalDiamondsInput" type="number" class="w-full bg-gray-800 text-white px-3 py-2 rounded-lg" value="0">
+      </div>
+      <div class="bg-gray-700 p-4 rounded-lg">
+        <h2 class="text-lg font-semibold mb-2">₱ Total Peso</h2>
+        <input id="totalPesoInput" type="number" class="w-full bg-gray-800 text-white px-3 py-2 rounded-lg" value="0">
+      </div>
+      <button id="updateEarningsBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg col-span-full mt-2">Update Earnings</button>
     </div>
 
-    <!-- ADD GLOBAL BOSSES -->
-    <div class="bg-white rounded-lg shadow p-4 mb-4">
-      <h2 class="text-xl font-semibold mb-2">Add Global Boss</h2>
-      <div class="flex gap-2">
-        <input
-          id="bossName"
-          type="text"
-          placeholder="Enter boss name"
-          class="border border-gray-300 rounded p-2 w-full"
-        />
-        <button
-          id="addBossBtn"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-        >Add</button>
+    <!-- Boss Participation -->
+    <div class="bg-gray-700 p-4 rounded-lg mb-6">
+      <h2 class="text-lg font-semibold mb-2">Add Boss Participation</h2>
+      <div class="flex flex-wrap gap-2 mb-2">
+        <select id="bossSelect" class="bg-gray-800 text-white px-3 py-2 rounded-lg flex-1"></select>
+        <button id="addParticipation" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">Add Participation</button>
+      </div>
+      <div class="flex flex-col gap-1">
+        <div class="flex items-center justify-between mb-1">
+          <span class="font-semibold">Select Members</span>
+          <button id="deselectAllBtn" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded-lg text-xs">Deselect All</button>
+        </div>
+        <div id="memberSelect" class="max-h-40 overflow-y-auto border border-gray-600 rounded-lg p-2"></div>
       </div>
     </div>
 
-    <!-- ADD MEMBER -->
-    <div class="bg-white rounded-lg shadow p-4 mb-4">
-      <h2 class="text-xl font-semibold mb-2">Add Member</h2>
-      <div class="flex gap-2">
-        <input
-          id="memberName"
-          type="text"
-          placeholder="Enter member name"
-          class="border border-gray-300 rounded p-2 w-full"
-        />
-        <button
-          id="addMemberBtn"
-          class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
-        >Add</button>
-      </div>
+    <!-- Add Boss / Add Member -->
+    <div class="flex flex-wrap gap-2 mb-6">
+      <button id="addBossBtn" class="bg-purple-600 hover:bg-purple-700 text-white px-4 py-2 rounded-lg flex-1">➕ Add Boss</button>
+      <button id="addMemberBtn" class="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg flex-1">➕ Add Member</button>
     </div>
 
-    <!-- UPDATE WEEKLY EARNINGS -->
-    <div class="bg-white rounded-lg shadow p-4 mb-4">
-      <h2 class="text-xl font-semibold mb-2">Update Weekly Earnings</h2>
-      <div class="flex flex-col md:flex-row gap-2 mb-2">
-        <input
-          id="pesoEarnings"
-          type="number"
-          placeholder="Peso Earnings"
-          class="border border-gray-300 rounded p-2 w-full"
-        />
-        <input
-          id="diamondEarnings"
-          type="number"
-          placeholder="Diamond Earnings"
-          class="border border-gray-300 rounded p-2 w-full"
-        />
-      </div>
-      <button
-        id="updateEarningsBtn"
-        class="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-2 rounded"
-      >Update Earnings</button>
-    </div>
+    <!-- Dashboard / Boss Participants -->
+    <div id="dashboard"></div>
+    <div id="bossList"></div>
 
-    <!-- DASHBOARD -->
-    <div class="bg-white rounded-lg shadow p-4">
-      <h2 class="text-xl font-semibold mb-2">Dashboard (Current Week)</h2>
-      <div id="dashboard" class="bg-gray-50 border border-gray-200 rounded p-3 h-60 overflow-y-auto">
-        <p class="text-gray-500 text-sm">Loading data...</p>
-      </div>
-    </div>
-  </section>
+  </div>
 
   <script type="module" src="admin.js"></script>
 </body>
