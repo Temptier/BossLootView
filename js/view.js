@@ -2,13 +2,13 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 // ------------------- Firebase Project (View-Only)
-const firebaseConfigView = {
-  apiKey: "YOUR_PROJECT_B_APIKEY",
-  authDomain: "YOUR_PROJECT_B.firebaseapp.com",
-  projectId: "YOUR_PROJECT_B",
-  storageBucket: "YOUR_PROJECT_B.appspot.com",
-  messagingSenderId: "YOUR_PROJECT_B_MSID",
-  appId: "YOUR_PROJECT_B_APPID"
+const firebaseConfig = {
+  apiKey: "AIzaSyCgkO44xHVeQv9XJvjIktAQhdet9J-6hvM",
+  authDomain: "guildlootsview.firebaseapp.com",
+  projectId: "guildlootsview",
+  storageBucket: "guildlootsview.firebasestorage.app",
+  messagingSenderId: "535298106967",
+  appId: "1:535298106967:web:c38f45b23b8782e2026512"
 };
 const appView = initializeApp(firebaseConfigView);
 const dbView = getFirestore(appView);
