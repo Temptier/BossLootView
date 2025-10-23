@@ -1,7 +1,4 @@
 // Elements
-const modal = document.getElementById('entry-modal');
-const modalBoss = document.getElementById('modal-boss');
-const modalMember = document.getElementById('modal-member');
 const selectedBossList = document.getElementById('selected-boss');
 const participantList = document.getElementById('participant-list');
 const lootList = document.getElementById('loot-list');
@@ -9,19 +6,15 @@ const tempLootItemsDiv = document.getElementById('temp-loot-items');
 const totalActiveLootEl = document.getElementById('total-active-loot');
 const activeShareEl = document.getElementById('active-share-per-member');
 
+const modalBoss = document.getElementById('modal-boss');
+const modalMember = document.getElementById('modal-member');
+
 const allMembers = ['Member A','Member B','Member C','Member D'];
 let currentBoss = '';
 let currentParticipants = [];
 let tempLootItems = [];
 
-// --- Modal functions ---
-function openModal() {
-    populateDropdowns();
-    modal.style.display = 'flex';
-}
-
-function closeModal() { modal.style.display = 'none'; }
-
+// --- Populate boss/member dropdowns on page load ---
 function populateDropdowns() {
     modalBoss.innerHTML = '';
     ['1st Boss','2nd Boss','3rd Boss','4th Boss'].forEach(b=>{
@@ -39,7 +32,9 @@ function populateDropdowns() {
         modalMember.appendChild(opt);
     });
 }
+populateDropdowns();
 
+// --- Confirm Selection (inline) ---
 function confirmSelection() {
     const boss = modalBoss.value;
     const participants = Array.from(modalMember.selectedOptions).map(o=>o.value);
@@ -57,8 +52,6 @@ function confirmSelection() {
         li.textContent = p;
         participantList.appendChild(li);
     });
-
-    closeModal();
 }
 
 // --- Temporary Loot ---
@@ -242,6 +235,3 @@ function addNewMember() {
         document.getElementById('new-member-name').value = '';
     } else alert("Member already exists.");
 }
-
-// Close modal by clicking outside
-window.onclick = e => { if(e.target === modal) closeModal(); }
