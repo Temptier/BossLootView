@@ -29,6 +29,16 @@
         <button onclick="confirmSelection()">Confirm Selection</button>
     </div>
 
+    <!-- Loot Input (moved above Selected Boss) -->
+    <div class="typing-slot">
+        <input type="text" id="loot-name" placeholder="Loot Item Name">
+        <input type="number" id="loot-price" placeholder="Price">
+        <button onclick="addLootItem()">Add Loot Item</button>
+    </div>
+
+    <!-- Temporary Loot Items -->
+    <div id="temp-loot-items" class="loot-list-container"></div>
+
     <!-- Selected Boss / Participants List -->
     <div class="list-container">
         <div class="list">
@@ -40,16 +50,6 @@
             <ul id="participant-list"></ul>
         </div>
     </div>
-
-    <!-- Loot Input -->
-    <div class="typing-slot">
-        <input type="text" id="loot-name" placeholder="Loot Item Name">
-        <input type="number" id="loot-price" placeholder="Price">
-        <button onclick="addLootItem()">Add Loot Item</button>
-    </div>
-
-    <!-- Temporary Loot Items -->
-    <div id="temp-loot-items" class="loot-list-container"></div>
 
     <!-- Add Loot Entry -->
     <div class="input-slot">
