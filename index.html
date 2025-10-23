@@ -8,222 +8,39 @@
 </head>
 <body class="bg-gray-100 p-4">
 
+  <h1 class="text-2xl font-bold mb-4">Guild Boss Tracker - View Only</h1>
+
+  <!-- Admin Access -->
+  <div class="mb-4">
+    <button id="admin-access-btn" class="bg-blue-600 text-white p-2 rounded">Admin Login</button>
+  </div>
+
   <!-- Week Selector -->
-  <div class="mb-4 flex items-center gap-2">
-    <label for="week-selector" class="font-semibold">Select Week:</label>
-    <select id="week-selector" class="border p-1 rounded"></select>
-  </div>
-
-  <!-- Weekly Earnings -->
-  <div class="mb-4 flex flex-col md:flex-row items-start md:items-center gap-2">
-    <label class="font-semibold">Weekly Earnings:</label>
-    <input type="number" id="weekly-earnings-diamond" class="border p-1 rounded w-24" disabled />
-    <input type="number" id="weekly-earnings-cash" class="border p-1 rounded w-24" disabled />
-  </div>
-
-  <!-- Panels Container -->
-  <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-
-    <!-- Bosses Panel -->
-    <div id="bosses-panel" class="p-4 border rounded">
-      <h3 class="font-semibold mb-2">Bosses</h3>
-      <div id="boss-list" class="flex flex-col gap-1 max-h-48 overflow-y-auto"></div>
-    </div>
-
-    <!-- Members Panel -->
-    <div id="members-panel" class="p-4 border rounded">
-      <h3 class="font-semibold mb-2">Members</h3>
-      <div id="member-list" class="flex flex-col gap-1 max-h-48 overflow-y-auto"></div>
-    </div>
-
+  <div class="mb-4">
+    <label class="block font-semibold mb-1">Select Week:</label>
+    <select id="week-selector" class="border p-2 rounded w-full"></select>
   </div>
 
   <!-- Dashboard -->
-  <div class="mb-4">
-    <h3 class="font-semibold mb-2">Dashboard (Member Participation)</h3>
-    <div id="dashboard-content" class="p-2 border rounded bg-white"></div>
-  </div>
+  <h2 class="text-xl font-bold mb-2">Member Participation & Earnings</h2>
+  <div id="dashboard-content" class="bg-white p-4 rounded shadow max-h-[400px] overflow-y-auto mb-6"></div>
 
-  <!-- Boss Participants List -->
-  <div>
-    <h3 class="font-semibold mb-2">Boss Participants (Per Entry)</h3>
-    <div id="boss-participants-content" class="p-2 border rounded bg-white"></div>
-  </div>
+  <h2 class="text-xl font-bold mb-2">Boss Participants</h2>
+  <div id="boss-participants-content" class="bg-white p-4 rounded shadow max-h-[400px] overflow-y-auto"></div>
 
-  <!-- Main JS -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-    import {
-      getFirestore,
-      collection,
-      doc,
-      getDocs,
-      getDoc
-    } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+  <script type="module" src="js/view.js"></script>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyCi4ldLdVtWAUKb0wyyds2HnbNujjIHmWQ",
-      authDomain: "guildrallyloots.firebaseapp.com",
-      projectId: "guildrallyloots",
-      storageBucket: "guildrallyloots.firebasestorage.app",
-      messagingSenderId: "116266984921",
-      appId: "1:116266984921:web:90326a9fed2ee48f79a5c8"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
-
-    const weekSelector = document.getElementById("week-selector");
-    const dashboardContent = document.getElementById("dashboard-content");
-    const bossParticipantsContent = document.getElementById("boss-participants-content");
-    const bossListDiv = document.getElementById("boss-list");
-    const memberListDiv = document.getElementById("member-list");
-    const weeklyEarningsDiamondInput = document.getElementById("weekly-earnings-diamond");
-    const weeklyEarningsCashInput = document.getElementById("weekly-earnings-cash");
-
-    let currentWeekId = null;
-
-    function formatDateTime(date) {
-      return date.toLocaleString("en-US", {
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit"
-      });
-    }
-
-    async function loadWeeks() {
-      const weeksRef = collection(db, "weeks");
-      const snapshot = await getDocs(weeksRef);
-      weekSelector.innerHTML = "";
-
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        const option = document.createElement("option");
-        option.value = docSnap.id;
-        option.textContent = `${new Date(data.start).toLocaleDateString()} - ${new Date(data.end).toLocaleDateString()}`;
-        weekSelector.appendChild(option);
-      });
-
-      if (snapshot.docs.length) {
-        currentWeekId = snapshot.docs[0].id;
-        weekSelector.value = currentWeekId;
-        loadDashboard();
-        loadBossParticipants();
-        loadWeekEarnings();
+  <!-- Admin Password Script -->
+  <script>
+    document.getElementById("admin-access-btn").addEventListener("click", () => {
+      const password = prompt("Enter admin password:");
+      const correctPassword = "Guild123"; // Change to your password
+      if(password === correctPassword) {
+        window.location.href = "admin.html";
+      } else {
+        alert("Incorrect password!");
       }
-    }
-
-    async function loadWeekEarnings() {
-      if (!currentWeekId) return;
-      const docSnap = await getDoc(doc(db, "weeks", currentWeekId));
-      if (docSnap.exists()) {
-        const data = docSnap.data().totalEarnings || { diamond: 0, cash: 0 };
-        weeklyEarningsDiamondInput.value = data.diamond || 0;
-        weeklyEarningsCashInput.value = data.cash || 0;
-      }
-    }
-
-    async function loadBosses() {
-      bossListDiv.innerHTML = "";
-      const snapshot = await getDocs(collection(db, "bosses"));
-      snapshot.forEach((docSnap) => {
-        const div = document.createElement("div");
-        div.textContent = docSnap.data().name;
-        bossListDiv.appendChild(div);
-      });
-    }
-
-    async function loadMembers() {
-      memberListDiv.innerHTML = "";
-      const snapshot = await getDocs(collection(db, "members"));
-      const membersArray = snapshot.docs.map((m) => m.data().name).sort();
-      membersArray.forEach((name) => {
-        const div = document.createElement("div");
-        div.textContent = name;
-        memberListDiv.appendChild(div);
-      });
-    }
-
-    async function loadDashboard() {
-      if (!currentWeekId) return;
-      const weekDoc = await getDoc(doc(db, "weeks", currentWeekId));
-      const totalEarnings = weekDoc.exists()
-        ? weekDoc.data().totalEarnings || { diamond: 0, cash: 0 }
-        : { diamond: 0, cash: 0 };
-
-      const membersSnapshot = await getDocs(collection(db, "members"));
-      const memberMap = {};
-      membersSnapshot.forEach((m) => memberMap[m.id] = m.data().name);
-
-      const snapshot = await getDocs(collection(db, "weeks", currentWeekId, "participations"));
-      const memberCount = {};
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        data.members.forEach((m) => {
-          memberCount[m] = (memberCount[m] || 0) + 1;
-        });
-      });
-
-      const totalParticipations = Object.values(memberCount).reduce((a, b) => a + b, 0);
-      dashboardContent.innerHTML = Object.entries(memberCount)
-        .map(([id, count]) => {
-          const name = memberMap[id] || "Unknown";
-          const shareDiamond = totalParticipations ? ((count / totalParticipations) * totalEarnings.diamond).toFixed(2) : "0";
-          const sharePeso = totalParticipations ? ((count / totalParticipations) * totalEarnings.cash).toFixed(2) : "0";
-          return `<div class="flex justify-between border-b py-1">
-            <span>${name}</span>
-            <span>${count} runs (${shareDiamond}💎 / ₱${sharePeso})</span>
-          </div>`;
-        })
-        .join("");
-    }
-
-    async function loadBossParticipants() {
-      if (!currentWeekId) return;
-
-      const membersSnapshot = await getDocs(collection(db, "members"));
-      const memberMap = {};
-      membersSnapshot.forEach((m) => memberMap[m.id] = m.data().name);
-
-      const bossesSnapshot = await getDocs(collection(db, "bosses"));
-      const bossMap = {};
-      bossesSnapshot.forEach((b) => bossMap[b.id] = b.data().name);
-
-      const snapshot = await getDocs(collection(db, "weeks", currentWeekId, "participations"));
-      bossParticipantsContent.innerHTML = "";
-
-      snapshot.forEach((docSnap) => {
-        const data = docSnap.data();
-        const div = document.createElement("div");
-        div.className = "border-b py-2";
-        const bossName = bossMap[data.bossId] || "Unknown Boss";
-        const time = new Date(data.timestamp).toLocaleString("en-US", {
-          month: "short", day: "numeric", hour: "2-digit", minute: "2-digit"
-        });
-        const participantNames = data.members.map(id => memberMap[id] || "Unknown").join(", ");
-
-        div.innerHTML = `<div>
-          <strong>${bossName}</strong> - ${time}<br>
-          <span class="text-sm text-gray-600">${participantNames}</span>
-        </div>`;
-
-        bossParticipantsContent.appendChild(div);
-      });
-    }
-
-    weekSelector.addEventListener("change", () => {
-      currentWeekId = weekSelector.value;
-      loadDashboard();
-      loadBossParticipants();
-      loadWeekEarnings();
     });
-
-    // Initialize
-    loadWeeks();
-    loadBosses();
-    loadMembers();
   </script>
-
 </body>
 </html>
