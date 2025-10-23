@@ -10,11 +10,9 @@
 <button class="back-btn" onclick="location.href='index.html'">Back</button>
 <h1>Guild Boss Loot - Admin</h1>
 
-<!-- ===== Boss Loot Panel ===== -->
+<!-- ===== Add Boss / Add Member (Above Boss Loot Panel) ===== -->
 <div class="panel">
-    <h2>Boss Loot Panel</h2>
-
-    <!-- Add Boss / Add Member / Select Participants -->
+    <h2>Add Boss / Add Member</h2>
     <div class="typing-slot">
         <input type="text" id="new-boss-name" placeholder="New Boss Name">
         <button onclick="addNewBoss()">Add Boss</button>
@@ -23,6 +21,13 @@
         <input type="text" id="new-member-name" placeholder="New Member Name">
         <button onclick="addNewMember()">Add Member</button>
     </div>
+</div>
+
+<!-- ===== Boss Loot Panel ===== -->
+<div class="panel">
+    <h2>Boss Loot Panel</h2>
+
+    <!-- Select Boss / Participants -->
     <div class="typing-slot">
         <select id="modal-boss"></select>
         <select id="modal-member" multiple></select>
