@@ -3,41 +3,58 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Guild Boss Hunt Tracker (View Only)</title>
+  <title>Guild Boss Hunt Tracker — View</title>
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center p-4">
-  <header class="flex justify-between w-full max-w-4xl items-center mb-6">
-    <h1 class="text-2xl font-bold text-emerald-400">🏹 Guild Boss Hunt Tracker</h1>
-    <button id="adminBtn" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-1 rounded-lg text-sm font-semibold">
-      Admin
-    </button>
+<body class="bg-gray-900 text-white min-h-screen">
+  <header class="bg-gray-800 p-4 shadow-lg flex justify-between items-center">
+    <h1 class="text-2xl font-bold text-amber-400">⚔️ Guild Boss Hunt Tracker</h1>
+    <a href="admin.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+      Admin Login
+    </a>
   </header>
 
-  <main class="w-full max-w-4xl space-y-6">
-    <!-- Week Selection -->
-    <section class="bg-gray-800 p-4 rounded-xl shadow-lg">
-      <h2 class="text-lg font-semibold mb-2 text-emerald-400">📅 Select Week</h2>
-      <select id="weekSelect" class="w-full p-2 rounded-md bg-gray-700 text-white focus:ring-2 focus:ring-emerald-500"></select>
+  <main class="p-4 space-y-6 max-w-5xl mx-auto">
+    <!-- Week Selector -->
+    <section class="bg-gray-800 p-4 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-2">📅 Select Week</h2>
+      <select id="weekSelect" class="bg-gray-700 w-full p-2 rounded border border-gray-600"></select>
     </section>
 
-    <!-- Weekly Earnings -->
-    <section class="bg-gray-800 p-4 rounded-xl shadow-lg">
-      <h2 class="text-lg font-semibold mb-3 text-emerald-400">💰 Weekly Earnings</h2>
-      <div id="earningsDiamond" class="text-lg text-emerald-300">💎 Diamond: 0</div>
-      <div id="earningsPeso" class="text-lg text-emerald-300">₱ Peso: 0</div>
+    <!-- Weekly Summary -->
+    <section class="bg-gray-800 p-4 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-3">💰 Weekly Summary</h2>
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
+        <div class="bg-gray-700 p-3 rounded">
+          <p class="text-sm text-gray-300">💎 Total Diamonds</p>
+          <p id="totalDiamonds" class="text-2xl font-bold text-amber-400">0</p>
+        </div>
+        <div class="bg-gray-700 p-3 rounded">
+          <p class="text-sm text-gray-300">₱ Total Peso</p>
+          <p id="totalPeso" class="text-2xl font-bold text-green-400">₱ 0</p>
+        </div>
+        <div class="bg-gray-700 p-3 rounded">
+          <p class="text-sm text-gray-300">⚔️ Total Participations</p>
+          <p id="totalParticipations" class="text-2xl font-bold text-blue-400">0</p>
+        </div>
+        <div class="bg-gray-700 p-3 rounded">
+          <p class="text-sm text-gray-300">👥 Total Members</p>
+          <p id="totalMembers" class="text-2xl font-bold text-purple-400">0</p>
+        </div>
+      </div>
     </section>
 
-    <!-- Boss Participants -->
-    <section class="bg-gray-800 p-4 rounded-xl shadow-lg">
-      <h2 class="text-lg font-semibold mb-3 text-emerald-400">⚔️ Boss Participants</h2>
+    <!-- Member Participation -->
+    <section class="bg-gray-800 p-4 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-3">👥 Member Participation</h2>
       <div id="participationList" class="space-y-2"></div>
     </section>
 
-    <!-- Member Summary -->
-    <section class="bg-gray-800 p-4 rounded-xl shadow-lg">
-      <h2 class="text-lg font-semibold mb-3 text-emerald-400">📊 Member Participation Summary</h2>
-      <div id="memberSummary" class="space-y-1 text-sm"></div>
+    <!-- Boss Participants -->
+    <section class="bg-gray-800 p-4 rounded-lg shadow">
+      <h2 class="text-xl font-semibold mb-3">🐉 Boss Participants</h2>
+      <div id="bossParticipantsList" class="space-y-3"></div>
     </section>
   </main>
 
