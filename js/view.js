@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 // ------------------- Firebase View-Only
 const firebaseConfigView = {
@@ -89,7 +89,7 @@ async function loadDashboard() {
 
     const participantNames = data.members.map(id=>memberMap[id]||"Unknown").join(", ");
 
-    // --- Dashboard: members & total participation
+    // --- Dashboard: members & participation count
     data.members.forEach(id=>{
       const memberDiv = dashboardContent.querySelector(`#member-${id}`);
       if(memberDiv){
@@ -106,7 +106,7 @@ async function loadDashboard() {
     // --- Boss Participants per Entry
     const bossDiv = document.createElement("div");
     bossDiv.className = "border-b py-2";
-    bossDiv.innerHTML = `<strong>${bossName}</strong> - ${timeStr}<br>Participants: ${participantNames}`;
+    bossDiv.innerHTML = `<strong>${bossName}</strong> - ${timeStr}<br>Participants: ${participantNames} | 💎 ${data.totalDiamond} | ₱ ${data.totalPeso}`;
     bossParticipantsContent.appendChild(bossDiv);
   });
 }
