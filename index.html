@@ -3,54 +3,45 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Guild Loots - Weekly Tracker</title>
-  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <title>Guild Loots Tracker - View Only</title>
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center py-6">
 
-<body class="bg-gray-100 text-gray-800 p-4">
-  <h1 class="text-2xl font-bold mb-4 text-center">Guild Loots - Weekly Tracker (View Only)</h1>
+  <h1 class="text-2xl font-bold mb-4">Guild Loots Weekly Overview</h1>
 
-  <!-- SELECT WEEK -->
-  <div class="bg-white rounded-lg shadow p-4 mb-4">
-    <h2 class="text-xl font-semibold mb-2">Select Week</h2>
-    <select id="weekSelect" class="border border-gray-300 rounded p-2 w-full mb-2"></select>
+  <!-- Week Selector -->
+  <div class="flex gap-2 items-center mb-4">
+    <label for="weekSelect" class="text-sm">Select Week:</label>
+    <select id="weekSelect" class="text-black px-2 py-1 rounded"></select>
+    
+    <!-- 🔁 Refresh Button -->
+    <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
+      🔁 Refresh
+    </button>
+
+    <!-- 🔐 Admin Access Button -->
+    <button id="adminBtn" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-1 rounded text-sm">
+      🔐 Admin
+    </button>
   </div>
 
-  <!-- WEEKLY EARNINGS -->
-  <div class="bg-white rounded-lg shadow p-4 mb-4">
-    <h2 class="text-xl font-semibold mb-2">Weekly Earnings</h2>
-    <div class="flex flex-col md:flex-row gap-4">
-      <div class="flex-1 bg-green-100 border border-green-300 rounded p-3 text-center">
-        <h3 class="text-lg font-medium text-green-800">Peso</h3>
-        <p id="pesoDisplay" class="text-2xl font-bold text-green-700 mt-1">₱0</p>
-      </div>
-      <div class="flex-1 bg-blue-100 border border-blue-300 rounded p-3 text-center">
-        <h3 class="text-lg font-medium text-blue-800">Diamond</h3>
-        <p id="diamondDisplay" class="text-2xl font-bold text-blue-700 mt-1">💎 0</p>
-      </div>
+  <!-- Total Earnings -->
+  <div class="grid grid-cols-2 gap-4 mb-6">
+    <div class="bg-gray-800 p-4 rounded-lg shadow-md text-center">
+      <p class="text-lg font-bold">💎 Total Diamonds</p>
+      <p id="totalDiamonds" class="text-2xl font-semibold">0</p>
+    </div>
+    <div class="bg-gray-800 p-4 rounded-lg shadow-md text-center">
+      <p class="text-lg font-bold">💰 Total Peso</p>
+      <p id="totalPeso" class="text-2xl font-semibold">₱0</p>
     </div>
   </div>
 
-  <!-- MEMBER PARTICIPATION -->
-  <div class="bg-white rounded-lg shadow p-4 mb-4">
-    <h2 class="text-xl font-semibold mb-2">Member Participation (Selected Week)</h2>
-    <div id="memberParticipation" class="bg-gray-50 border border-gray-200 rounded p-3 h-60 overflow-y-auto">
-      <p class="text-gray-500 text-sm">Loading participation data...</p>
-    </div>
-  </div>
-
-  <!-- BOSS PARTICIPANTS LIST -->
-  <div class="bg-white rounded-lg shadow p-4">
-    <h2 class="text-xl font-semibold mb-2">Boss Participants (Selected Week)</h2>
-    <div id="bossParticipants" class="bg-gray-50 border border-gray-200 rounded p-3 h-60 overflow-y-auto">
-      <p class="text-gray-500 text-sm">Loading boss data...</p>
-    </div>
-  </div>
-
-  <footer class="text-center text-sm text-gray-400 mt-6">
-    Guild Loots Tracker • View Only
-  </footer>
+  <!-- Dashboard Data -->
+  <div id="memberParticipation" class="w-full max-w-2xl mb-6"></div>
+  <div id="bossParticipants" class="w-full max-w-2xl"></div>
 
   <script type="module" src="view.js"></script>
 </body>
