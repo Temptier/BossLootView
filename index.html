@@ -3,30 +3,37 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Guild Boss Tracker - View Only</title>
+  <title>Guild Loots View</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-4">
 
-  <h1 class="text-2xl font-bold mb-4">Guild Boss Tracker - View Only</h1>
+  <h1 class="text-2xl font-bold mb-4">Guild Loots - View Only</h1>
 
-  <!-- Admin Login Button -->
-  <button id="admin-login-btn" class="bg-blue-600 text-white p-2 rounded mb-4">Admin Login</button>
+  <!-- Admin Access -->
+  <div class="mb-4">
+    <button id="admin-access-btn" class="bg-red-500 text-white p-2 rounded">Admin Access</button>
+  </div>
 
   <!-- Week Selector -->
   <div class="mb-4">
-    <label class="block font-semibold mb-1">Select Week:</label>
-    <select id="week-selector" class="border p-2 rounded w-full"></select>
+    <label for="week-selector" class="font-semibold mr-2">Select Week:</label>
+    <select id="week-selector" class="border p-1 rounded"></select>
   </div>
 
-  <!-- Dashboard: Members Participation + Earnings -->
-  <h2 class="text-xl font-bold mb-2">Member Dashboard</h2>
-  <div id="dashboard-content" class="bg-white p-4 rounded shadow max-h-[400px] overflow-y-auto"></div>
+  <!-- Total Earnings Display -->
+  <div class="flex items-center space-x-4 mb-4">
+    <div class="font-semibold">💎 Total Diamond: <span id="total-diamond">0</span></div>
+    <div class="font-semibold">₱ Total Peso: <span id="total-peso">0</span></div>
+  </div>
 
-  <!-- Boss Participants per Entry -->
-  <h2 class="text-xl font-bold mt-4 mb-2">Boss Participants</h2>
-  <div id="boss-participants-content" class="bg-white p-4 rounded shadow max-h-[400px] overflow-y-auto"></div>
+  <!-- Dashboard / Participation Display -->
+  <div class="mt-6">
+    <h2 class="font-semibold mb-2">Participations</h2>
+    <div id="view-dashboard" class="bg-white rounded shadow p-2 max-h-96 overflow-y-auto"></div>
+  </div>
 
-  <script type="module" src="js/view.js"></script>
+  <script type="module" src="./view.js"></script>
+
 </body>
 </html>
