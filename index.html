@@ -3,60 +3,54 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Guild Boss Hunt Tracker — View</title>
-  <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
+  <title>Guild Loots - Weekly Tracker</title>
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen">
-  <header class="bg-gray-800 p-4 shadow-lg flex justify-between items-center">
-    <h1 class="text-2xl font-bold text-amber-400">⚔️ Guild Boss Hunt Tracker</h1>
-    <a href="admin.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-      Admin Login
-    </a>
-  </header>
 
-  <main class="p-4 space-y-6 max-w-5xl mx-auto">
-    <!-- Week Selector -->
-    <section class="bg-gray-800 p-4 rounded-lg shadow">
-      <h2 class="text-xl font-semibold mb-2">📅 Select Week</h2>
-      <select id="weekSelect" class="bg-gray-700 w-full p-2 rounded border border-gray-600"></select>
-    </section>
+<body class="bg-gray-100 text-gray-800 p-4">
+  <h1 class="text-2xl font-bold mb-4 text-center">Guild Loots - Weekly Tracker (View Only)</h1>
 
-    <!-- Weekly Summary -->
-    <section class="bg-gray-800 p-4 rounded-lg shadow">
-      <h2 class="text-xl font-semibold mb-3">💰 Weekly Summary</h2>
-      <div class="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
-        <div class="bg-gray-700 p-3 rounded">
-          <p class="text-sm text-gray-300">💎 Total Diamonds</p>
-          <p id="totalDiamonds" class="text-2xl font-bold text-amber-400">0</p>
-        </div>
-        <div class="bg-gray-700 p-3 rounded">
-          <p class="text-sm text-gray-300">₱ Total Peso</p>
-          <p id="totalPeso" class="text-2xl font-bold text-green-400">₱ 0</p>
-        </div>
-        <div class="bg-gray-700 p-3 rounded">
-          <p class="text-sm text-gray-300">⚔️ Total Participations</p>
-          <p id="totalParticipations" class="text-2xl font-bold text-blue-400">0</p>
-        </div>
-        <div class="bg-gray-700 p-3 rounded">
-          <p class="text-sm text-gray-300">👥 Total Members</p>
-          <p id="totalMembers" class="text-2xl font-bold text-purple-400">0</p>
-        </div>
+  <!-- SELECT WEEK -->
+  <div class="bg-white rounded-lg shadow p-4 mb-4">
+    <h2 class="text-xl font-semibold mb-2">Select Week</h2>
+    <select id="weekSelect" class="border border-gray-300 rounded p-2 w-full mb-2"></select>
+  </div>
+
+  <!-- WEEKLY EARNINGS -->
+  <div class="bg-white rounded-lg shadow p-4 mb-4">
+    <h2 class="text-xl font-semibold mb-2">Weekly Earnings</h2>
+    <div class="flex flex-col md:flex-row gap-4">
+      <div class="flex-1 bg-green-100 border border-green-300 rounded p-3 text-center">
+        <h3 class="text-lg font-medium text-green-800">Peso</h3>
+        <p id="pesoDisplay" class="text-2xl font-bold text-green-700 mt-1">₱0</p>
       </div>
-    </section>
+      <div class="flex-1 bg-blue-100 border border-blue-300 rounded p-3 text-center">
+        <h3 class="text-lg font-medium text-blue-800">Diamond</h3>
+        <p id="diamondDisplay" class="text-2xl font-bold text-blue-700 mt-1">💎 0</p>
+      </div>
+    </div>
+  </div>
 
-    <!-- Member Participation -->
-    <section class="bg-gray-800 p-4 rounded-lg shadow">
-      <h2 class="text-xl font-semibold mb-3">👥 Member Participation</h2>
-      <div id="participationList" class="space-y-2"></div>
-    </section>
+  <!-- MEMBER PARTICIPATION -->
+  <div class="bg-white rounded-lg shadow p-4 mb-4">
+    <h2 class="text-xl font-semibold mb-2">Member Participation (Selected Week)</h2>
+    <div id="memberParticipation" class="bg-gray-50 border border-gray-200 rounded p-3 h-60 overflow-y-auto">
+      <p class="text-gray-500 text-sm">Loading participation data...</p>
+    </div>
+  </div>
 
-    <!-- Boss Participants -->
-    <section class="bg-gray-800 p-4 rounded-lg shadow">
-      <h2 class="text-xl font-semibold mb-3">🐉 Boss Participants</h2>
-      <div id="bossParticipantsList" class="space-y-3"></div>
-    </section>
-  </main>
+  <!-- BOSS PARTICIPANTS LIST -->
+  <div class="bg-white rounded-lg shadow p-4">
+    <h2 class="text-xl font-semibold mb-2">Boss Participants (Selected Week)</h2>
+    <div id="bossParticipants" class="bg-gray-50 border border-gray-200 rounded p-3 h-60 overflow-y-auto">
+      <p class="text-gray-500 text-sm">Loading boss data...</p>
+    </div>
+  </div>
+
+  <footer class="text-center text-sm text-gray-400 mt-6">
+    Guild Loots Tracker • View Only
+  </footer>
 
   <script type="module" src="view.js"></script>
 </body>
