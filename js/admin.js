@@ -1,14 +1,14 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, collection, doc, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 // ------------------- Firebase Admin
-const firebaseConfig = {
-  apiKey: "AIzaSyBd1oHWW3HoQ6o9f3FP9W9aV1mqwEifQzw",
-  authDomain: "guildlootsadmin.firebaseapp.com",
-  projectId: "guildlootsadmin",
-  storageBucket: "guildlootsadmin.firebasestorage.app",
-  messagingSenderId: "895884983655",
-  appId: "1:895884983655:web:2588fbb854394fb3ed43c2"
+const firebaseConfigAdmin = {
+  apiKey: "YOUR_PROJECT_A_APIKEY",
+  authDomain: "YOUR_PROJECT_A.firebaseapp.com",
+  projectId: "YOUR_PROJECT_A",
+  storageBucket: "YOUR_PROJECT_A.appspot.com",
+  messagingSenderId: "YOUR_PROJECT_A_MSID",
+  appId: "YOUR_PROJECT_A_APPID"
 };
 const appAdmin = initializeApp(firebaseConfigAdmin);
 const dbAdmin = getFirestore(appAdmin);
@@ -22,6 +22,10 @@ const selectMembersContainer = document.getElementById("select-members-container
 const addParticipationBtn = document.getElementById("add-participation-btn");
 const deselectAllBtn = document.getElementById("deselect-all-btn");
 const adminDashboard = document.getElementById("admin-dashboard");
+const addBossInput = document.getElementById("add-boss-input");
+const addBossBtn = document.getElementById("add-boss-btn");
+const addMemberInput = document.getElementById("add-member-input");
+const addMemberBtn = document.getElementById("add-member-btn");
 
 let members = [];
 let bosses = [];
@@ -85,6 +89,46 @@ deselectAllBtn.onclick = () => {
   selectMembersContainer.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
 };
 
+// ------------------- Add Boss
+addBossBtn.onclick = async () => {
+  const name = addBossInput.value.trim();
+  if(!name) return alert("Enter boss name");
+  await addDoc(collection(dbAdmin, "bosses"), { name });
+  addBossInput.value = "";
+  await loadBosses();
+};
+
+// ------------------- Add Member
+addMemberBtn.onclick = async () => {
+  const name = addMemberInput.value.trim();
+  if(!name) return alert("Enter member name");
+  // Prevent duplicate
+  if(members.find(m=>m.name.toLowerCase()===name.toLowerCase())) return alert("Member already exists");
+  await addDoc(collection(dbAdmin, "members"), { name });
+  addMemberInput.value = "";
+  await loadMembers();
+};
+
+// ------------------- Auto-create current week if missing
+async function ensureCurrentWeek() {
+  const now = new Date();
+  const startOfWeek = new Date(now);
+  startOfWeek.setDate(now.getDate() - now.getDay() + 1); // Monday
+  startOfWeek.setHours(0,0,0,0);
+  const endOfWeek = new Date(startOfWeek);
+  endOfWeek.setDate(startOfWeek.getDate() + 6); // Sunday
+  endOfWeek.setHours(23,59,59,999);
+
+  const weeksRef = collection(dbAdmin, "weeks");
+  const q = query(weeksRef, where("start", "<=", now), where("end", ">=", now));
+  const snapshot = await getDocs(q);
+
+  if(snapshot.empty) {
+    const docRef = await addDoc(weeksRef, { start: startOfWeek, end: endOfWeek });
+    console.log("Created new week:", docRef.id);
+  }
+}
+
 // ------------------- Load Weeks
 async function loadWeeks() {
   const snapshot = await getDocs(collection(dbAdmin, "weeks"));
@@ -108,7 +152,6 @@ async function loadWeeks() {
 addParticipationBtn.addEventListener("click", async()=>{
   const bossId = selectBossContainer.querySelector("input[name=boss]:checked")?.value;
   const selectedMembers = Array.from(selectMembersContainer.querySelectorAll("input[type=checkbox]:checked")).map(cb=>cb.value);
-
   if(!bossId || selectedMembers.length===0) return alert("Select boss and members");
 
   const totalDiamond = parseFloat(totalDiamondInput.value) || 0;
@@ -188,4 +231,5 @@ weekSelector.addEventListener("change", e=>{
 // ------------------- Initial Load
 await loadMembers();
 await loadBosses();
+await ensureCurrentWeek();
 await loadWeeks();
