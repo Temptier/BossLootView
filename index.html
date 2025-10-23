@@ -1,48 +1,23 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Guild Loots Tracker - View Only</title>
-  <link rel="icon" type="image/x-icon" href="/static/favicon.ico" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guild Boss Hunt Tracker</title>
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center py-6">
+<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center justify-center">
 
-  <h1 class="text-2xl font-bold mb-4">Guild Loots Weekly Overview</h1>
+  <div class="bg-gray-800 p-8 rounded-2xl shadow-lg text-center w-full max-w-md">
+    <h1 class="text-3xl font-bold mb-6">⚔️ Guild Boss Hunt Tracker</h1>
+    <p class="mb-6 text-gray-300">View your guild’s boss hunt participation and earnings.</p>
 
-  <!-- Week Selector -->
-  <div class="flex gap-2 items-center mb-4">
-    <label for="weekSelect" class="text-sm">Select Week:</label>
-    <select id="weekSelect" class="text-black px-2 py-1 rounded"></select>
-    
-    <!-- 🔁 Refresh Button -->
-    <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm">
-      🔁 Refresh
-    </button> 
-
-    <!-- 🔐 Admin Access Button -->
-    <button id="adminBtn" class="bg-gray-700 hover:bg-gray-800 text-white px-3 py-1 rounded text-sm">
-      🔐 Admin
-    </button>
-  </div>
-
-  <!-- Total Earnings -->
-  <div class="grid grid-cols-2 gap-4 mb-6">
-    <div class="bg-gray-800 p-4 rounded-lg shadow-md text-center">
-      <p class="text-lg font-bold">💎 Total Diamonds</p>
-      <p id="totalDiamonds" class="text-2xl font-semibold">0</p>
-    </div>
-    <div class="bg-gray-800 p-4 rounded-lg shadow-md text-center">
-      <p class="text-lg font-bold">💰 Total Peso</p>
-      <p id="totalPeso" class="text-2xl font-semibold">₱0</p>
+    <div class="flex flex-col gap-4">
+      <a href="view.html" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-3 rounded-lg font-semibold shadow-md">👀 View Dashboard</a>
+      <a href="login.html" class="bg-green-600 hover:bg-green-700 text-white px-4 py-3 rounded-lg font-semibold shadow-md">🔑 Admin Login</a>
     </div>
   </div>
 
-  <!-- Dashboard Data -->
-  <div id="memberParticipation" class="w-full max-w-2xl mb-6"></div>
-  <div id="bossParticipants" class="w-full max-w-2xl"></div>
-
-  <script type="module" src="view.js"></script>
 </body>
 </html>
