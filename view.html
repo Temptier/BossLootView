@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Guild Boss Hunt Tracker – View</title>
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon">
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-900 text-gray-100 min-h-screen p-4 flex flex-col items-center">
+
+  <div class="w-full max-w-5xl bg-gray-800 p-6 rounded-2xl shadow-lg">
+
+    <h1 class="text-2xl font-bold mb-6 text-center">⚔️ Guild Boss Hunt Tracker – View</h1>
+
+    <!-- Week Selector -->
+    <div class="flex flex-wrap justify-between items-center mb-6 gap-2">
+      <div class="flex items-center gap-2">
+        <select id="weekSelect" class="bg-gray-700 text-white px-3 py-2 rounded-lg"></select>
+        <button id="refreshBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">🔄 Refresh</button>
+      </div>
+    </div>
+
+    <!-- Earnings -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+      <div class="bg-gray-700 p-4 rounded-lg">
+        <h2 class="text-lg font-semibold mb-2">💎 Total Diamonds</h2>
+        <span id="totalDiamonds" class="text-white font-medium">0</span>
+      </div>
+      <div class="bg-gray-700 p-4 rounded-lg">
+        <h2 class="text-lg font-semibold mb-2">₱ Total Peso</h2>
+        <span id="totalPeso" class="text-white font-medium">₱0</span>
+      </div>
+    </div>
+
+    <!-- Member Participation -->
+    <div id="memberParticipation"></div>
+
+    <!-- Boss Participants -->
+    <div id="bossParticipants"></div>
+
+  </div>
+
+  <script type="module" src="view.js"></script>
+</body>
+</html>
