@@ -102,7 +102,6 @@ addBossBtn.onclick = async () => {
 addMemberBtn.onclick = async () => {
   const name = addMemberInput.value.trim();
   if(!name) return alert("Enter member name");
-  // Prevent duplicate
   if(members.find(m=>m.name.toLowerCase()===name.toLowerCase())) return alert("Member already exists");
   await addDoc(collection(dbAdmin, "members"), { name });
   addMemberInput.value = "";
@@ -124,9 +123,12 @@ async function ensureCurrentWeek() {
   const snapshot = await getDocs(q);
 
   if(snapshot.empty) {
-    const docRef = await addDoc(weeksRef, { start: startOfWeek, end: endOfWeek });
-    console.log("Created new week:", docRef.id);
+    await addDoc(weeksRef, { start: startOfWeek, end: endOfWeek });
+    console.log("Created new week");
   }
+
+  // Reload weeks and set currentWeekId
+  await loadWeeks();
 }
 
 // ------------------- Load Weeks
@@ -231,5 +233,4 @@ weekSelector.addEventListener("change", e=>{
 // ------------------- Initial Load
 await loadMembers();
 await loadBosses();
-await ensureCurrentWeek();
-await loadWeeks();
+await ensureCurrentWeek(); // creates week if missing and loads week selector
