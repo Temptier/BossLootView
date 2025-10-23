@@ -1,19 +1,9 @@
-// ===================== FIREBASE SETUP =====================
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.1/firebase-app.js";
-import {
-  getFirestore,
-  collection,
-  doc,
-  getDocs,
-  addDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
-  query,
-  where,
-} from "https://www.gstatic.com/firebasejs/10.13.1/firebase-firestore.js";
+// ================= FIREBASE SETUP =================
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
+import { 
+  getFirestore, collection, addDoc, getDocs, getDoc, setDoc, doc, updateDoc, deleteDoc 
+} from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// ⚙️ ADMIN FIREBASE CONFIG
 const firebaseConfig = {
   apiKey: "AIzaSyBd1oHWW3HoQ6o9f3FP9W9aV1mqwEifQzw",
   authDomain: "guildlootsadmin.firebaseapp.com",
@@ -26,234 +16,199 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
 
-// ===================== DOM ELEMENTS =====================
-const passwordScreen = document.getElementById("passwordScreen");
-const adminPanel = document.getElementById("adminPanel");
-const loginBtn = document.getElementById("loginBtn");
-const adminPassword = document.getElementById("adminPassword");
-
-const weekSelect = document.getElementById("weekSelect");
-const refreshWeeks = document.getElementById("refreshWeeks");
-
-const addBossBtn = document.getElementById("addBossBtn");
-const newBossName = document.getElementById("newBossName");
-
+// ================= ELEMENTS =================
+const statusMessage = document.getElementById("statusMessage");
 const addMemberBtn = document.getElementById("addMemberBtn");
-const newMemberName = document.getElementById("newMemberName");
-
-const bossSelect = document.getElementById("bossSelect");
-const memberList = document.getElementById("memberList");
-const addParticipationBtn = document.getElementById("addParticipationBtn");
-const deselectAllBtn = document.getElementById("deselectAll");
-
-const totalDiamondsInput = document.getElementById("totalDiamondsInput");
-const totalPesoInput = document.getElementById("totalPesoInput");
+const addBossBtn = document.getElementById("addBossBtn");
 const updateEarningsBtn = document.getElementById("updateEarningsBtn");
 
-const participationList = document.getElementById("participationList");
-
-// ===================== ADMIN LOGIN =====================
-const ADMIN_PASS = "guildadmin"; // 🔒 change this password anytime
-
-loginBtn.addEventListener("click", () => {
-  if (adminPassword.value.trim() === ADMIN_PASS) {
-    passwordScreen.classList.add("hidden");
-    adminPanel.classList.remove("hidden");
-    initializeData();
-  } else {
-    alert("❌ Incorrect password.");
-  }
-});
-
-// ===================== INIT DATA =====================
-async function initializeData() {
-  await ensureCurrentWeekExists();
-  await loadWeeks();
-  await loadBosses();
-  await loadMembers();
-  await loadParticipation();
+// ================= HELPERS =================
+function showStatus(msg, color = "emerald") {
+  statusMessage.textContent = msg;
+  statusMessage.className = `text-${color}-400 font-semibold mb-3`;
+  setTimeout(() => (statusMessage.textContent = ""), 3000);
 }
 
-// ===================== WEEK HANDLING =====================
-function getCurrentWeekRange() {
-  const now = new Date();
-  const day = now.getDay();
-  const monday = new Date(now);
-  monday.setDate(now.getDate() - ((day + 6) % 7)); // Monday
-  const sunday = new Date(monday);
-  sunday.setDate(monday.getDate() + 6); // Sunday
-  return { monday, sunday };
-}
-
+// ================= AUTO CREATE WEEK RECORD =================
 async function ensureCurrentWeekExists() {
-  const { monday, sunday } = getCurrentWeekRange();
-  const weekId = `${monday.toISOString().split("T")[0]}_${sunday.toISOString().split("T")[0]}`;
-  const weekRef = doc(db, "weeks", weekId);
-  const q = query(collection(db, "weeks"), where("id", "==", weekId));
-  const snap = await getDocs(q);
-  if (snap.empty) {
-    await setDoc(weekRef, {
-      id: weekId,
-      start: monday.toDateString(),
-      end: sunday.toDateString(),
-      totalDiamonds: 0,
+  const now = new Date();
+  const firstDayOfWeek = new Date(now.setDate(now.getDate() - now.getDay() + 1));
+  const weekLabel = `${firstDayOfWeek.getFullYear()}-${firstDayOfWeek.getMonth() + 1}-${firstDayOfWeek.getDate()}`;
+
+  const weekDoc = doc(db, "weeks", weekLabel);
+  const weekSnap = await getDoc(weekDoc);
+
+  if (!weekSnap.exists()) {
+    await setDoc(weekDoc, {
+      createdAt: new Date().toISOString(),
+      totalDiamond: 0,
       totalPeso: 0,
     });
-    console.log("✅ Created new week record:", weekId);
+    showStatus(`✅ Created new week record: ${weekLabel}`);
   }
 }
 
-async function loadWeeks() {
-  weekSelect.innerHTML = "";
-  const snap = await getDocs(collection(db, "weeks"));
-  const weeks = [];
-  snap.forEach(doc => weeks.push(doc.data()));
-  weeks.sort((a, b) => new Date(b.start) - new Date(a.start));
+// ================= ADD GUILD MEMBER =================
+async function addGuildMember() {
+  const name = prompt("Enter new guild member name:");
+  if (!name) return;
 
-  weeks.forEach(week => {
-    const opt = document.createElement("option");
-    opt.value = week.id;
-    opt.textContent = `${week.start} - ${week.end}`;
-    weekSelect.appendChild(opt);
-  });
+  const membersRef = collection(db, "members");
+  const snapshot = await getDocs(membersRef);
+
+  const duplicate = snapshot.docs.find((doc) => doc.data().name.toLowerCase() === name.toLowerCase());
+  if (duplicate) {
+    showStatus("⚠️ Member already exists.", "amber");
+    return;
+  }
+
+  await addDoc(membersRef, { name });
+  showStatus(`✅ Added member: ${name}`);
 }
 
-// ===================== ADD BOSSES =====================
-addBossBtn.addEventListener("click", async () => {
-  const name = newBossName.value.trim();
-  if (!name) return alert("Enter boss name!");
-  await addDoc(collection(db, "bosses"), { name });
-  newBossName.value = "";
-  await loadBosses();
-});
+// ================= ADD BOSS =================
+async function addBoss() {
+  const bossName = prompt("Enter new boss name:");
+  if (!bossName) return;
 
-async function loadBosses() {
-  bossSelect.innerHTML = "";
-  const snap = await getDocs(collection(db, "bosses"));
-  const bosses = [];
-  snap.forEach(doc => bosses.push({ id: doc.id, ...doc.data() }));
-  bosses.sort((a, b) => a.name.localeCompare(b.name));
+  const bossesRef = collection(db, "bosses");
+  const snapshot = await getDocs(bossesRef);
 
-  bosses.forEach(boss => {
-    const opt = document.createElement("option");
-    opt.value = boss.id;
-    opt.textContent = boss.name;
-    bossSelect.appendChild(opt);
-  });
+  const duplicate = snapshot.docs.find((doc) => doc.data().name.toLowerCase() === bossName.toLowerCase());
+  if (duplicate) {
+    showStatus("⚠️ Boss already exists.", "amber");
+    return;
+  }
+
+  await addDoc(bossesRef, { name: bossName });
+  showStatus(`✅ Added boss: ${bossName}`);
 }
 
-// ===================== ADD MEMBERS =====================
-addMemberBtn.addEventListener("click", async () => {
-  const name = newMemberName.value.trim();
-  if (!name) return alert("Enter member name!");
-  const q = query(collection(db, "members"), where("name", "==", name));
-  const snap = await getDocs(q);
-  if (!snap.empty) return alert("Duplicate member!");
+// ================= UPDATE WEEKLY EARNINGS =================
+async function updateWeeklyEarnings() {
+  const diamond = parseFloat(prompt("Enter total diamond for the week:"));
+  const peso = parseFloat(prompt("Enter total peso for the week:"));
 
-  await addDoc(collection(db, "members"), { name });
-  newMemberName.value = "";
-  await loadMembers();
-});
-
-async function loadMembers() {
-  memberList.innerHTML = "";
-  const snap = await getDocs(collection(db, "members"));
-  const members = [];
-  snap.forEach(doc => members.push({ id: doc.id, ...doc.data() }));
-  members.sort((a, b) => a.name.localeCompare(b.name));
-
-  members.forEach(member => {
-    const div = document.createElement("div");
-    div.innerHTML = `
-      <label class="flex items-center gap-2">
-        <input type="checkbox" value="${member.id}" class="memberCheckbox">
-        <span>${member.name}</span>
-      </label>
-    `;
-    memberList.appendChild(div);
-  });
-}
-
-deselectAllBtn.addEventListener("click", () => {
-  document.querySelectorAll(".memberCheckbox").forEach(cb => (cb.checked = false));
-});
-
-// ===================== ADD PARTICIPATION =====================
-addParticipationBtn.addEventListener("click", async () => {
-  const bossId = bossSelect.value;
-  const checked = [...document.querySelectorAll(".memberCheckbox:checked")].map(cb => cb.value);
-  if (!bossId || checked.length === 0) return alert("Select boss and members!");
-
-  const bossSnap = await getDocs(collection(db, "bosses"));
-  let bossName = "";
-  bossSnap.forEach(doc => {
-    if (doc.id === bossId) bossName = doc.data().name;
-  });
+  if (isNaN(diamond) || isNaN(peso)) {
+    showStatus("⚠️ Invalid input.", "amber");
+    return;
+  }
 
   const now = new Date();
-  const record = {
-    weekId: weekSelect.value,
-    bossId,
-    bossName,
-    members: checked,
-    time: now.toISOString(),
-  };
-  await addDoc(collection(db, "participation"), record);
-  await loadParticipation();
+  const firstDayOfWeek = new Date(now.setDate(now.getDate() - now.getDay() + 1));
+  const weekLabel = `${firstDayOfWeek.getFullYear()}-${firstDayOfWeek.getMonth() + 1}-${firstDayOfWeek.getDate()}`;
+
+  const weekDoc = doc(db, "weeks", weekLabel);
+  await updateDoc(weekDoc, { totalDiamond: diamond, totalPeso: peso });
+  showStatus(`💰 Updated weekly earnings: ${diamond} 💎 / ₱${peso}`);
+}
+
+// ================= INITIALIZATION =================
+window.addEventListener("DOMContentLoaded", async () => {
+  await ensureCurrentWeekExists();
+
+  addMemberBtn.addEventListener("click", addGuildMember);
+  addBossBtn.addEventListener("click", addBoss);
+  updateEarningsBtn.addEventListener("click", updateWeeklyEarnings);
 });
+// ================= DELETE MEMBER =================
+async function deleteMember() {
+  const name = prompt("Enter member name to delete:");
+  if (!name) return;
 
-// ===================== LOAD PARTICIPATION =====================
-async function loadParticipation() {
-  participationList.innerHTML = "";
-  const weekId = weekSelect.value;
-  const q = query(collection(db, "participation"), where("weekId", "==", weekId));
-  const snap = await getDocs(q);
+  const membersRef = collection(db, "members");
+  const snapshot = await getDocs(membersRef);
 
-  for (const docu of snap.docs) {
-    const data = docu.data();
-    const date = new Date(data.time).toLocaleString();
-    const memberNames = [];
-    for (const id of data.members) {
-      const memSnap = await getDocs(collection(db, "members"));
-      memSnap.forEach(d => {
-        if (d.id === id) memberNames.push(d.data().name);
-      });
-    }
+  const target = snapshot.docs.find((doc) => doc.data().name.toLowerCase() === name.toLowerCase());
+  if (!target) {
+    showStatus("⚠️ Member not found.", "amber");
+    return;
+  }
 
+  await deleteDoc(doc(db, "members", target.id));
+  showStatus(`🗑️ Deleted member: ${name}`);
+}
+
+// ================= DELETE BOSS =================
+async function deleteBoss() {
+  const name = prompt("Enter boss name to delete:");
+  if (!name) return;
+
+  const bossesRef = collection(db, "bosses");
+  const snapshot = await getDocs(bossesRef);
+
+  const target = snapshot.docs.find((doc) => doc.data().name.toLowerCase() === name.toLowerCase());
+  if (!target) {
+    showStatus("⚠️ Boss not found.", "amber");
+    return;
+  }
+
+  await deleteDoc(doc(db, "bosses", target.id));
+  showStatus(`🗑️ Deleted boss: ${name}`);
+}
+
+// ================= RELOAD DASHBOARD =================
+async function loadDashboardSummary() {
+  const weeksRef = collection(db, "weeks");
+  const snapshot = await getDocs(weeksRef);
+
+  const summaryDiv = document.getElementById("weekSummary");
+  if (!summaryDiv) return;
+
+  summaryDiv.innerHTML = "";
+  snapshot.forEach((docSnap) => {
+    const week = docSnap.data();
     const div = document.createElement("div");
-    div.className = "bg-gray-800 p-3 rounded flex justify-between items-center";
-    div.innerHTML = `
-      <div>
-        <p class="text-amber-400 font-semibold">${data.bossName}</p>
-        <p class="text-sm text-gray-300">${date}</p>
-        <p class="text-sm">${memberNames.join(", ")}</p>
-      </div>
-      <div class="flex gap-2">
-        <button class="bg-blue-500 hover:bg-blue-600 px-2 py-1 rounded text-sm" data-id="${docu.id}" onclick="editParticipation('${docu.id}')">Edit</button>
-        <button class="bg-red-500 hover:bg-red-600 px-2 py-1 rounded text-sm" data-id="${docu.id}" onclick="deleteParticipation('${docu.id}')">Delete</button>
-      </div>
-    `;
-    participationList.appendChild(div);
+    div.className = "bg-gray-800 p-3 rounded-lg shadow mb-2";
+    div.textContent = `📅 ${docSnap.id}: 💎 ${week.totalDiamond} | ₱ ${week.totalPeso}`;
+    summaryDiv.appendChild(div);
+  });
+  showStatus("📊 Dashboard refreshed!");
+}
+
+// ================= SAFE WEEK CREATION =================
+async function ensureWeek(weekLabel) {
+  const weekDoc = doc(db, "weeks", weekLabel);
+  const snap = await getDoc(weekDoc);
+  if (!snap.exists()) {
+    await setDoc(weekDoc, {
+      createdAt: new Date().toISOString(),
+      totalDiamond: 0,
+      totalPeso: 0,
+    });
+    showStatus(`✅ Auto-created week: ${weekLabel}`);
   }
 }
 
-// ===================== DELETE & UPDATE EARNINGS =====================
-window.deleteParticipation = async function (id) {
-  if (confirm("Delete this participation?")) {
-    await deleteDoc(doc(db, "participation", id));
-    await loadParticipation();
-  }
-};
+// ================= ADMIN ACTIONS =================
+const deleteMemberBtn = document.getElementById("deleteMemberBtn");
+const deleteBossBtn = document.getElementById("deleteBossBtn");
+const refreshBtn = document.getElementById("refreshBtn");
 
-updateEarningsBtn.addEventListener("click", async () => {
-  const weekId = weekSelect.value;
-  const ref = doc(db, "weeks", weekId);
-  await updateDoc(ref, {
-    totalDiamonds: Number(totalDiamondsInput.value || 0),
-    totalPeso: Number(totalPesoInput.value || 0),
-  });
-  alert("✅ Weekly earnings updated!");
+deleteMemberBtn.addEventListener("click", deleteMember);
+deleteBossBtn.addEventListener("click", deleteBoss);
+refreshBtn.addEventListener("click", loadDashboardSummary);
+
+// ================= PASSWORD GATEKEEPER =================
+const adminPanel = document.getElementById("adminPanel");
+const loginSection = document.getElementById("loginSection");
+const loginBtn = document.getElementById("loginBtn");
+const passwordInput = document.getElementById("passwordInput");
+
+loginBtn.addEventListener("click", () => {
+  const pass = passwordInput.value.trim();
+  if (pass === "1") {
+    loginSection.style.display = "none";
+    adminPanel.style.display = "block";
+    showStatus("🔓 Admin access granted!");
+    ensureCurrentWeekExists();
+    loadDashboardSummary();
+  } else {
+    alert("❌ Incorrect password");
+  }
 });
 
-// Refresh Button
-refreshWeeks.addEventListener("click", initializeData);
+// ================= INIT =================
+window.addEventListener("DOMContentLoaded", async () => {
+  console.log("✅ Admin system ready");
+});
