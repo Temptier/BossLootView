@@ -1,8 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
 import { getFirestore, collection, doc, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// ------------------- Firebase Admin
-const firebaseConfig = {
+// ------------------- Firebase Admin (Editable)
+const firebaseConfigAdmin = {
   apiKey: "AIzaSyBd1oHWW3HoQ6o9f3FP9W9aV1mqwEifQzw",
   authDomain: "guildlootsadmin.firebaseapp.com",
   projectId: "guildlootsadmin",
