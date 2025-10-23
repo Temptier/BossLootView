@@ -1,19 +1,8 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, collection, getDocs, query, where } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// ------------------- Admin Login
-const adminPassword = "PASSWORD"; // Change this to your secret password
-document.getElementById("admin-login-btn").onclick = () => {
-  const input = prompt("Enter admin password:");
-  if(input === adminPassword){
-    window.location.href = "admin.html"; // redirect to admin page
-  } else {
-    alert("Incorrect password");
-  }
-};
-
-// ------------------- Firebase Project (View-Only)
-const firebaseConfig = {
+// ------------------- Firebase View-Only
+const firebaseConfigView = {
   apiKey: "AIzaSyCgkO44xHVeQv9XJvjIktAQhdet9J-6hvM",
   authDomain: "guildlootsview.firebaseapp.com",
   projectId: "guildlootsview",
@@ -23,6 +12,17 @@ const firebaseConfig = {
 };
 const appView = initializeApp(firebaseConfigView);
 const dbView = getFirestore(appView);
+
+// ------------------- Admin Login
+const adminPassword = "YOUR_SECRET_PASSWORD"; // change this
+document.getElementById("admin-login-btn").onclick = () => {
+  const input = prompt("Enter admin password:");
+  if(input === adminPassword){
+    window.location.href = "admin.html"; // redirect to admin page
+  } else {
+    alert("Incorrect password");
+  }
+};
 
 // ------------------- DOM Elements
 const weekSelector = document.getElementById("week-selector");
@@ -51,12 +51,10 @@ async function loadBosses() {
 
 // ------------------- Load Weeks
 async function loadWeeks() {
-  const weeksSnapshot = await getDocs(collection(dbView, "weeks"));
+  const snapshot = await getDocs(collection(dbView, "weeks"));
   weekSelector.innerHTML = "";
-
-  if (weeksSnapshot.empty) return;
-
-  weeksSnapshot.forEach(docSnap => {
+  if(snapshot.empty) return;
+  snapshot.forEach(docSnap=>{
     const data = docSnap.data();
     const option = document.createElement("option");
     option.value = docSnap.id;
@@ -65,8 +63,7 @@ async function loadWeeks() {
     option.textContent = `${start.toDateString()} - ${end.toDateString()}`;
     weekSelector.appendChild(option);
   });
-
-  currentWeekId = weekSelector.options[0].value;
+  currentWeekId = weekSelector.options[0]?.value;
   weekSelector.value = currentWeekId;
   loadDashboard();
 }
@@ -75,57 +72,47 @@ async function loadWeeks() {
 async function loadDashboard() {
   if(!currentWeekId) return;
 
+  const snapshot = await getDocs(collection(dbView, "weeks", currentWeekId, "participations"));
   const memberMap = {};
   members.forEach(m => memberMap[m.id] = m.name);
 
-  const participationsRef = collection(dbView, "weeks", currentWeekId, "participations");
-  const participationsSnapshot = await getDocs(participationsRef);
+  dashboardContent.innerHTML = "";
+  bossParticipantsContent.innerHTML = "";
 
-  // Count per member and earnings
-  const memberCount = {};
-  const memberDiamond = {};
-  const memberPeso = {};
-
-  participationsSnapshot.forEach(docSnap => {
+  snapshot.forEach(docSnap=>{
     const data = docSnap.data();
-    data.members.forEach(m => {
-      memberCount[m] = (memberCount[m] || 0) + 1;
-      memberDiamond[m] = (memberDiamond[m] || 0) + (data.totalDiamond || 0)/data.members.length;
-      memberPeso[m] = (memberPeso[m] || 0) + (data.totalPeso || 0)/data.members.length;
+    const bossName = bosses.find(b=>b.id===data.bossId)?.name || "Unknown Boss";
+    const timestamp = data.timestamp?.toDate();
+    const timeStr = timestamp ? timestamp.toLocaleString("en-US", {
+      month:"short", day:"numeric", hour:"2-digit", minute:"2-digit", hour12:true
+    }) : "Unknown Time";
+
+    const participantNames = data.members.map(id=>memberMap[id]||"Unknown").join(", ");
+
+    // --- Dashboard: members & total participation
+    data.members.forEach(id=>{
+      const memberDiv = dashboardContent.querySelector(`#member-${id}`);
+      if(memberDiv){
+        const countSpan = memberDiv.querySelector(".count");
+        countSpan.textContent = parseInt(countSpan.textContent)+1;
+      } else {
+        const div = document.createElement("div");
+        div.id = `member-${id}`;
+        div.innerHTML = `<strong>${memberMap[id]}</strong> - Participation: <span class="count">1</span> | 💎 ${data.totalDiamond} | ₱ ${data.totalPeso}`;
+        dashboardContent.appendChild(div);
+      }
     });
+
+    // --- Boss Participants per Entry
+    const bossDiv = document.createElement("div");
+    bossDiv.className = "border-b py-2";
+    bossDiv.innerHTML = `<strong>${bossName}</strong> - ${timeStr}<br>Participants: ${participantNames}`;
+    bossParticipantsContent.appendChild(bossDiv);
   });
-
-  // ---------------- Dashboard - Member Participation & Earnings
-  dashboardContent.innerHTML = Object.entries(memberCount)
-    .map(([id, count]) => {
-      const name = memberMap[id] || "Unknown";
-      const diamond = memberDiamond[id] ? memberDiamond[id].toFixed(2) : 0;
-      const peso = memberPeso[id] ? memberPeso[id].toFixed(2) : 0;
-      return `<div class="flex justify-between border-b py-1">
-        <span>${name}</span>
-        <span>${count} runs | 💎 ${diamond} | ₱ ${peso}</span>
-      </div>`;
-    }).join("");
-
-  // ---------------- Boss Participants Section
-  bossParticipantsContent.innerHTML = participationsSnapshot.docs
-    .map(docSnap => {
-      const data = docSnap.data();
-      const bossName = bosses.find(b => b.id === data.bossId)?.name || "Unknown Boss";
-      const timestamp = data.timestamp?.toDate();
-      const timeStr = timestamp ? timestamp.toLocaleString("en-US", {
-        month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", hour12: true
-      }) : "Unknown Time";
-      const participantNames = data.members.map(id => memberMap[id] || "Unknown").join(", ");
-      return `<div class="border-b py-2">
-        <strong>${bossName}</strong> - ${timeStr}<br>
-        <span class="text-sm text-gray-600">Participants: ${participantNames}</span>
-      </div>`;
-    }).join("");
 }
 
-// ------------------- Week change
-weekSelector.addEventListener("change", (e) => {
+// ------------------- Week Change
+weekSelector.addEventListener("change", e=>{
   currentWeekId = e.target.value;
   loadDashboard();
 });
