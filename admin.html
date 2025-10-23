@@ -3,64 +3,57 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Guild Boss Tracker - Admin</title>
+  <title>Guild Loots Admin</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-4">
 
-  <h1 class="text-2xl font-bold mb-4">Guild Boss Tracker - Admin</h1>
+  <h1 class="text-2xl font-bold mb-4">Guild Loots Admin Dashboard</h1>
 
   <!-- Week Selector -->
   <div class="mb-4">
-    <label class="block font-semibold mb-1">Select Week:</label>
-    <select id="week-selector" class="border p-2 rounded w-full"></select>
+    <label for="week-selector" class="font-semibold mr-2">Select Week:</label>
+    <select id="week-selector" class="border p-1 rounded"></select>
   </div>
 
   <!-- Total Earnings -->
-  <div class="mb-4">
-    <label class="block font-semibold mb-1">Total Earnings (Diamond 💎):</label>
-    <input type="number" id="total-earnings-diamond" class="border p-2 rounded w-full" placeholder="Enter total diamond earnings">
+  <div class="flex items-center space-x-2 mb-4">
+    <input id="total-earnings-diamond" type="number" placeholder="Total Diamond" class="border p-1 w-24">
+    <input id="total-earnings-peso" type="number" placeholder="Total Peso" class="border p-1 w-24">
+    <button id="update-weekly-earnings-btn" class="bg-blue-500 text-white p-1 rounded">Update Weekly Earnings</button>
   </div>
 
+  <!-- Add Boss Participation -->
   <div class="mb-4">
-    <label class="block font-semibold mb-1">Total Earnings (Peso ₱):</label>
-    <input type="number" id="total-earnings-peso" class="border p-2 rounded w-full" placeholder="Enter total peso earnings">
+    <h2 class="font-semibold mb-2">Add Boss Participation</h2>
+    <div id="select-boss-container" class="flex flex-wrap gap-2 mb-2"></div>
+    <div id="select-members-container" class="flex flex-wrap gap-2 mb-2"></div>
+    <button id="deselect-all-btn" class="bg-gray-300 text-black p-1 rounded mb-2">Deselect All</button>
+    <button id="add-participation-btn" class="bg-green-500 text-white p-2 rounded">Add Participation</button>
   </div>
 
-  <!-- Add Boss -->
+  <!-- Add Global Boss -->
   <div class="mb-4">
-    <label class="block font-semibold mb-1">Add Boss:</label>
-    <input type="text" id="add-boss-input" class="border p-2 rounded w-full mb-2" placeholder="Boss name">
-    <button id="add-boss-btn" class="bg-blue-600 text-white p-2 rounded w-full">Add Boss</button>
+    <h2 class="font-semibold mb-2">Add Global Boss</h2>
+    <input id="add-boss-input" type="text" placeholder="Boss Name" class="border p-1 w-48">
+    <button id="add-boss-btn" class="bg-blue-500 text-white p-1 rounded">Add Boss</button>
   </div>
 
-  <!-- Add Member -->
+  <!-- Add Guild Member -->
   <div class="mb-4">
-    <label class="block font-semibold mb-1">Add Guild Member:</label>
-    <input type="text" id="add-member-input" class="border p-2 rounded w-full mb-2" placeholder="Member name">
-    <button id="add-member-btn" class="bg-blue-600 text-white p-2 rounded w-full">Add Member</button>
+    <h2 class="font-semibold mb-2">Add Guild Member</h2>
+    <input id="add-member-input" type="text" placeholder="Member Name" class="border p-1 w-48">
+    <button id="add-member-btn" class="bg-blue-500 text-white p-1 rounded">Add Member</button>
   </div>
-
-  <!-- Select Boss -->
-  <div class="mb-4">
-    <label class="block font-semibold mb-1">Select Boss:</label>
-    <div id="select-boss-container" class="mb-2"></div>
-  </div>
-
-  <!-- Select Members -->
-  <div class="mb-4">
-    <label class="block font-semibold mb-1">Select Members:</label>
-    <div id="select-members-container" class="mb-2"></div>
-    <button id="deselect-all-btn" class="bg-red-500 text-white p-2 rounded mb-2">Deselect All Members</button>
-  </div>
-
-  <!-- Add Participation -->
-  <button id="add-participation-btn" class="bg-green-600 text-white p-2 rounded mb-4 w-full">Add Participation</button>
 
   <!-- Dashboard -->
-  <h2 class="text-xl font-bold mb-2">Dashboard</h2>
-  <div id="admin-dashboard" class="bg-white p-4 rounded shadow max-h-[500px] overflow-y-auto"></div>
+  <div class="mt-6">
+    <h2 class="font-semibold mb-2">Participations</h2>
+    <div id="admin-dashboard" class="bg-white rounded shadow p-2 max-h-96 overflow-y-auto"></div>
+  </div>
 
-  <script type="module" src="js/admin.js"></script>
+  <!-- Admin JS -->
+  <script type="module" src="./admin.js"></script>
+
 </body>
 </html>
