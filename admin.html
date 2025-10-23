@@ -3,78 +3,76 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Guild Loots Admin Dashboard</title>
+  <title>GuildLoots Admin</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-gray-200 min-h-screen flex flex-col items-center p-4">
+<body class="bg-gray-900 text-gray-100">
 
-  <!-- Header -->
-  <h1 class="text-3xl font-bold text-amber-400 mb-4">⚔️ Guild Loots Admin</h1>
-
-  <!-- Password Login -->
-  <div id="passwordScreen" class="flex flex-col items-center bg-gray-800 p-6 rounded-lg shadow-lg">
-    <p class="mb-2">Enter Admin Password:</p>
-    <input id="adminPassword" type="password" placeholder="Enter password"
-      class="p-2 rounded bg-gray-700 text-gray-100 mb-3 w-64 text-center">
-    <button id="loginBtn" class="bg-amber-500 hover:bg-amber-600 text-white px-4 py-2 rounded">Login</button>
+  <!-- 🔒 Login Screen -->
+  <div id="loginScreen" class="flex flex-col items-center justify-center h-screen space-y-4">
+    <h1 class="text-3xl font-bold text-amber-400">GuildLoots Admin</h1>
+    <p class="text-gray-400 text-sm">Enter admin password to continue</p>
+    <input id="adminPassword" type="password" placeholder="Password" class="px-4 py-2 rounded bg-gray-800 text-gray-200 outline-none w-64 text-center">
+    <button id="loginButton" class="px-6 py-2 bg-amber-500 hover:bg-amber-600 text-black rounded font-semibold transition">Login</button>
+    <p id="loginError" class="text-red-400 text-sm hidden">Incorrect password.</p>
   </div>
 
-  <!-- Main Admin Panel -->
-  <div id="adminPanel" class="hidden w-full max-w-4xl bg-gray-800 rounded-lg p-6 shadow-lg mt-6">
+  <!-- 🧭 Admin Dashboard (hidden until login) -->
+  <div id="adminDashboard" class="hidden p-6">
+    <h1 class="text-2xl font-bold text-amber-400 mb-4">⚔️ GuildLoots Admin Panel</h1>
 
-    <!-- Week Selection -->
-    <div class="flex flex-wrap justify-between items-center mb-4">
-      <h2 class="text-xl font-semibold">Current Week:</h2>
-      <select id="weekSelect" class="bg-gray-700 text-white p-2 rounded"></select>
-      <button id="refreshWeeks" class="bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded">🔄 Refresh</button>
+    <div class="mb-6 flex gap-3">
+      <button id="addMemberBtn" class="bg-emerald-600 hover:bg-emerald-700 px-4 py-2 rounded">Add Guild Member</button>
+      <button id="addBossBtn" class="bg-indigo-600 hover:bg-indigo-700 px-4 py-2 rounded">Add Boss</button>
+      <button id="updateEarningsBtn" class="bg-amber-600 hover:bg-amber-700 px-4 py-2 rounded">Update Weekly Earnings</button>
     </div>
 
-    <!-- Add Boss and Member -->
-    <div class="flex flex-col sm:flex-row gap-4 mb-4">
-      <div class="flex flex-col w-full">
-        <input id="newBossName" type="text" placeholder="Enter new boss name"
-          class="p-2 bg-gray-700 rounded text-white mb-2">
-        <button id="addBossBtn" class="bg-green-600 hover:bg-green-700 px-3 py-2 rounded">➕ Add Boss</button>
-      </div>
-      <div class="flex flex-col w-full">
-        <input id="newMemberName" type="text" placeholder="Enter new member name"
-          class="p-2 bg-gray-700 rounded text-white mb-2">
-        <button id="addMemberBtn" class="bg-green-600 hover:bg-green-700 px-3 py-2 rounded">➕ Add Member</button>
-      </div>
-    </div>
+    <div id="statusMessage" class="text-emerald-400 font-semibold mb-3"></div>
 
-    <!-- Participation Entry -->
-    <div class="bg-gray-700 p-4 rounded-lg mb-4">
-      <h3 class="text-lg font-semibold mb-2">Add Participation</h3>
-      <div class="flex flex-col gap-3">
-        <select id="bossSelect" class="p-2 rounded bg-gray-800 text-white"></select>
-        <div class="flex justify-between items-center">
-          <label class="text-sm">Select Members:</label>
-          <button id="deselectAll" class="text-amber-400 hover:text-amber-500 text-sm underline">Deselect All</button>
-        </div>
-        <div id="memberList" class="grid grid-cols-2 sm:grid-cols-3 gap-2 bg-gray-800 p-2 rounded max-h-48 overflow-y-auto"></div>
-        <button id="addParticipationBtn" class="bg-amber-500 hover:bg-amber-600 px-4 py-2 rounded">Add Participation</button>
-      </div>
-    </div>
-
-    <!-- Weekly Totals -->
-    <div class="bg-gray-700 p-4 rounded-lg mb-4">
-      <h3 class="text-lg font-semibold mb-2">Weekly Earnings</h3>
-      <div class="flex flex-wrap gap-3">
-        <input id="totalDiamondsInput" type="number" placeholder="Total Diamonds" class="p-2 bg-gray-800 rounded text-white w-36">
-        <input id="totalPesoInput" type="number" placeholder="Total Peso (₱)" class="p-2 bg-gray-800 rounded text-white w-36">
-        <button id="updateEarningsBtn" class="bg-green-600 hover:bg-green-700 px-3 py-2 rounded">💎 Update Earnings</button>
-      </div>
-    </div>
-
-    <!-- Records -->
-    <div class="bg-gray-700 p-4 rounded-lg">
-      <h3 class="text-lg font-semibold mb-2">Weekly Participation Records</h3>
-      <div id="participationList" class="space-y-2 max-h-80 overflow-y-auto"></div>
-    </div>
-
+    <!-- Dashboard content -->
+    <iframe src="view.html" class="w-full h-[75vh] rounded-lg border border-gray-700"></iframe>
   </div>
 
-  <script type="module" src="admin.js"></script>
+  <script type="module">
+    // ================= PASSWORD LOGIN SYSTEM =================
+    const loginScreen = document.getElementById('loginScreen');
+    const adminDashboard = document.getElementById('adminDashboard');
+    const loginButton = document.getElementById('loginButton');
+    const loginError = document.getElementById('loginError');
+    const adminPasswordInput = document.getElementById('adminPassword');
+
+    // Set your password here 🔑
+    const ADMIN_PASSWORD = "guild2025";
+
+    // Check if already logged in
+    if (localStorage.getItem("guildAdminAccess") === "true") {
+      loginScreen.classList.add("hidden");
+      adminDashboard.classList.remove("hidden");
+    }
+
+    loginButton.addEventListener("click", () => {
+      const enteredPassword = adminPasswordInput.value.trim();
+
+      if (enteredPassword === ADMIN_PASSWORD) {
+        localStorage.setItem("guildAdminAccess", "true");
+        loginScreen.classList.add("hidden");
+        adminDashboard.classList.remove("hidden");
+        loginError.classList.add("hidden");
+      } else {
+        loginError.classList.remove("hidden");
+      }
+    });
+
+    // Enter key trigger
+    adminPasswordInput.addEventListener("keypress", (e) => {
+      if (e.key === "Enter") loginButton.click();
+    });
+
+    // Logout support (optional)
+    window.logoutAdmin = function () {
+      localStorage.removeItem("guildAdminAccess");
+      location.reload();
+    };
+  </script>
 </body>
 </html>
