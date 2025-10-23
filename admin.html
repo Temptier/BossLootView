@@ -3,50 +3,91 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Guild Loots Admin Panel</title>
+  <title>Guild Boss Tracker - Admin</title>
+  <link rel="icon" href="/static/favicon.ico" type="image/x-icon" />
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-900 text-gray-100 min-h-screen flex flex-col items-center p-4">
 
-  <!-- 🔒 LOGIN SECTION -->
-  <div id="loginSection" class="mt-32 w-full max-w-md bg-gray-800 p-6 rounded-xl shadow-lg text-center">
-    <h2 class="text-2xl font-bold mb-3">Admin Access</h2>
-    <p class="text-gray-400 mb-4">Enter password to manage records</p>
-    <input id="passwordInput" type="password" placeholder="Enter password"
-      class="w-full p-2 rounded bg-gray-700 text-gray-100 mb-3 focus:outline-none focus:ring-2 focus:ring-emerald-400">
+<body class="bg-gray-900 text-white min-h-screen flex flex-col items-center p-6">
+
+  <!-- 🔐 LOGIN SCREEN -->
+  <div id="loginScreen" class="w-full max-w-sm bg-gray-800 p-6 rounded-2xl shadow-lg text-center mt-20">
+    <h2 class="text-2xl font-bold text-emerald-400 mb-4">Admin Login</h2>
+    <input id="adminPassword" type="password" placeholder="Enter password"
+      class="w-full p-2 rounded bg-gray-700 text-white focus:outline-none" />
     <button id="loginBtn"
-      class="w-full bg-emerald-500 hover:bg-emerald-600 py-2 rounded font-semibold transition">
-      Login
-    </button>
+      class="w-full mt-4 bg-emerald-500 hover:bg-emerald-600 p-2 rounded font-semibold transition">Login</button>
+    <p id="loginError" class="text-red-400 mt-2 hidden">Incorrect password!</p>
   </div>
 
   <!-- ⚙️ ADMIN PANEL -->
-  <div id="adminPanel" class="hidden w-full max-w-2xl bg-gray-800 mt-10 p-6 rounded-xl shadow-xl">
-    <h2 class="text-2xl font-bold text-center mb-4">Guild Loots Admin Dashboard</h2>
-
-    <!-- Status -->
-    <p id="statusMessage" class="text-emerald-400 text-center mb-4"></p>
-
-    <!-- Action Buttons -->
-    <div class="grid grid-cols-2 md:grid-cols-3 gap-3 text-center mb-6">
-      <button id="addMemberBtn" class="bg-emerald-600 hover:bg-emerald-700 py-2 rounded">Add Member</button>
-      <button id="addBossBtn" class="bg-emerald-600 hover:bg-emerald-700 py-2 rounded">Add Boss</button>
-      <button id="updateEarningsBtn" class="bg-blue-600 hover:bg-blue-700 py-2 rounded">Update Earnings</button>
-      <button id="deleteMemberBtn" class="bg-red-600 hover:bg-red-700 py-2 rounded">Delete Member</button>
-      <button id="deleteBossBtn" class="bg-red-600 hover:bg-red-700 py-2 rounded">Delete Boss</button>
-      <button id="refreshBtn" class="bg-yellow-600 hover:bg-yellow-700 py-2 rounded">Refresh Dashboard</button>
+  <div id="adminPanel" class="hidden w-full max-w-5xl bg-gray-800 rounded-2xl p-6 shadow-xl mt-8">
+    <div class="flex justify-between items-center mb-6">
+      <h1 class="text-3xl font-bold text-emerald-400">Guild Admin Dashboard</h1>
+      <button id="logoutBtn"
+        class="bg-red-500 hover:bg-red-600 px-3 py-2 rounded-lg font-semibold transition">Logout</button>
     </div>
 
-    <!-- Dashboard -->
-    <div class="bg-gray-900 p-4 rounded-lg shadow-inner">
-      <h3 class="text-xl font-semibold mb-2 text-emerald-400">📊 Weekly Summary</h3>
-      <div id="weekSummary" class="space-y-2 text-gray-200">
-        <p class="text-gray-500">Loading weekly records...</p>
+    <!-- 🔹 Week Selector -->
+    <div class="mb-6">
+      <label class="block text-sm font-semibold mb-2 text-gray-300">Select Week</label>
+      <select id="weekSelect" class="p-2 bg-gray-700 rounded-lg text-white w-full"></select>
+      <button id="createWeekBtn"
+        class="mt-3 bg-blue-500 hover:bg-blue-600 px-3 py-2 rounded-lg font-semibold transition">+ Create Week if Missing</button>
+    </div>
+
+    <!-- 💎 Weekly Earnings -->
+    <div class="bg-gray-700 p-4 rounded-xl mb-6">
+      <h2 class="text-xl font-semibold text-emerald-400 mb-3">Weekly Earnings</h2>
+      <div class="grid grid-cols-2 gap-4">
+        <input id="totalDiamond" type="number" placeholder="💎 Diamond"
+          class="p-2 rounded bg-gray-800 text-white focus:outline-none" />
+        <input id="totalPeso" type="number" placeholder="₱ Peso"
+          class="p-2 rounded bg-gray-800 text-white focus:outline-none" />
       </div>
+      <button id="updateEarningsBtn"
+        class="mt-4 w-full bg-emerald-500 hover:bg-emerald-600 p-2 rounded font-semibold transition">Update Total Weekly Earnings</button>
+    </div>
+
+    <!-- 👥 Add Guild Member -->
+    <div class="bg-gray-700 p-4 rounded-xl mb-6">
+      <h2 class="text-xl font-semibold text-emerald-400 mb-3">Add Guild Member</h2>
+      <div class="flex gap-2">
+        <input id="newMemberName" type="text" placeholder="Enter member name"
+          class="flex-1 p-2 rounded bg-gray-800 text-white focus:outline-none" />
+        <button id="addMemberBtn"
+          class="bg-blue-500 hover:bg-blue-600 px-4 py-2 rounded-lg font-semibold transition">Add</button>
+      </div>
+      <ul id="memberList" class="mt-3 text-gray-300 text-sm"></ul>
+    </div>
+
+    <!-- 🧟‍♂️ Add Boss Hunt -->
+    <div class="bg-gray-700 p-4 rounded-xl mb-6">
+      <h2 class="text-xl font-semibold text-emerald-400 mb-3">Add Boss Hunt</h2>
+      <input id="bossName" type="text" placeholder="Boss name"
+        class="w-full mb-3 p-2 rounded bg-gray-800 text-white focus:outline-none" />
+      <input id="bossDate" type="date"
+        class="w-full mb-3 p-2 rounded bg-gray-800 text-white focus:outline-none" />
+
+      <label class="block text-gray-300 mb-1">Select Members (Alphabetical):</label>
+      <div id="memberSelectList"
+        class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2 max-h-48 overflow-y-auto bg-gray-800 p-2 rounded"></div>
+      <div class="flex justify-end mt-2">
+        <button id="deselectAllBtn"
+          class="bg-gray-600 hover:bg-gray-700 px-3 py-1 rounded text-sm">Deselect All</button>
+      </div>
+
+      <button id="addBossBtn"
+        class="mt-4 w-full bg-emerald-500 hover:bg-emerald-600 p-2 rounded font-semibold transition">Add Boss Record</button>
+    </div>
+
+    <!-- 📜 Boss Participation List -->
+    <div class="bg-gray-700 p-4 rounded-xl">
+      <h2 class="text-xl font-semibold text-emerald-400 mb-3">Boss Hunts This Week</h2>
+      <div id="bossList" class="space-y-3 text-sm"></div>
     </div>
   </div>
 
-  <!-- Script -->
   <script type="module" src="admin.js"></script>
 </body>
 </html>
