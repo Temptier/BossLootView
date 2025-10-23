@@ -1,8 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getFirestore, collection, doc, getDocs, setDoc, updateDoc, deleteDoc, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
+import { getFirestore, collection, doc, getDocs, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
-// -------------------
-// Firebase Admin Project
+// ------------------- Firebase Admin
 const firebaseConfigAdmin = {
   apiKey: "YOUR_PROJECT_A_APIKEY",
   authDomain: "YOUR_PROJECT_A.firebaseapp.com",
@@ -16,10 +15,12 @@ const dbAdmin = getFirestore(appAdmin);
 
 // ------------------- DOM Elements
 const weekSelector = document.getElementById("week-selector");
-const totalEarningsInput = document.getElementById("total-earnings");
+const totalDiamondInput = document.getElementById("total-earnings-diamond");
+const totalPesoInput = document.getElementById("total-earnings-peso");
 const selectBossContainer = document.getElementById("select-boss-container");
 const selectMembersContainer = document.getElementById("select-members-container");
 const addParticipationBtn = document.getElementById("add-participation-btn");
+const deselectAllBtn = document.getElementById("deselect-all-btn");
 const adminDashboard = document.getElementById("admin-dashboard");
 
 let members = [];
@@ -48,16 +49,16 @@ async function loadBosses() {
 function renderBosses() {
   selectBossContainer.innerHTML = "";
   bosses.forEach(b => {
-    const checkbox = document.createElement("input");
-    checkbox.type = "radio";
-    checkbox.name = "boss";
-    checkbox.value = b.id;
-    checkbox.id = `boss-${b.id}`;
+    const radio = document.createElement("input");
+    radio.type = "radio";
+    radio.name = "boss";
+    radio.value = b.id;
+    radio.id = `boss-${b.id}`;
     const label = document.createElement("label");
     label.htmlFor = `boss-${b.id}`;
     label.textContent = b.name;
     label.className = "mr-2";
-    selectBossContainer.appendChild(checkbox);
+    selectBossContainer.appendChild(radio);
     selectBossContainer.appendChild(label);
   });
 }
@@ -77,23 +78,19 @@ function renderMembers() {
     selectMembersContainer.appendChild(checkbox);
     selectMembersContainer.appendChild(label);
   });
-
-  // Deselect All Button
-  const deselectBtn = document.createElement("button");
-  deselectBtn.textContent = "Deselect All";
-  deselectBtn.className = "bg-red-500 text-white p-1 rounded ml-2";
-  deselectBtn.onclick = () => {
-    selectMembersContainer.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
-  };
-  selectMembersContainer.appendChild(deselectBtn);
 }
+
+// ------------------- Deselect All Members
+deselectAllBtn.onclick = () => {
+  selectMembersContainer.querySelectorAll("input[type=checkbox]").forEach(cb => cb.checked = false);
+};
 
 // ------------------- Load Weeks
 async function loadWeeks() {
-  const weeksSnapshot = await getDocs(collection(dbAdmin, "weeks"));
+  const snapshot = await getDocs(collection(dbAdmin, "weeks"));
   weekSelector.innerHTML = "";
-  if(weeksSnapshot.empty) return;
-  weeksSnapshot.forEach(docSnap=>{
+  if(snapshot.empty) return;
+  snapshot.forEach(docSnap=>{
     const data = docSnap.data();
     const option = document.createElement("option");
     option.value = docSnap.id;
@@ -110,28 +107,31 @@ async function loadWeeks() {
 // ------------------- Add Participation
 addParticipationBtn.addEventListener("click", async()=>{
   const bossId = selectBossContainer.querySelector("input[name=boss]:checked")?.value;
-  const selectedMembers = Array.from(selectMembersContainer.querySelectorAll("input[type=checkbox]:checked")).map(cb => cb.value);
+  const selectedMembers = Array.from(selectMembersContainer.querySelectorAll("input[type=checkbox]:checked")).map(cb=>cb.value);
+
   if(!bossId || selectedMembers.length===0) return alert("Select boss and members");
 
-  const participationsRef = collection(dbAdmin, "weeks", currentWeekId, "participations");
-  await addDoc(participationsRef, {
+  const totalDiamond = parseFloat(totalDiamondInput.value) || 0;
+  const totalPeso = parseFloat(totalPesoInput.value) || 0;
+
+  await addDoc(collection(dbAdmin, "weeks", currentWeekId, "participations"), {
     bossId,
     members: selectedMembers,
+    totalDiamond,
+    totalPeso,
     timestamp: serverTimestamp()
   });
+
   loadDashboard();
 });
 
 // ------------------- Dashboard
 async function loadDashboard() {
   if(!currentWeekId) return;
+  const snapshot = await getDocs(collection(dbAdmin, "weeks", currentWeekId, "participations"));
 
-  const participationsRef = collection(dbAdmin, "weeks", currentWeekId, "participations");
-  const snapshot = await getDocs(participationsRef);
-
-  // Map memberId => name
   const memberMap = {};
-  members.forEach(m=> memberMap[m.id] = m.name);
+  members.forEach(m => memberMap[m.id] = m.name);
 
   adminDashboard.innerHTML = "";
   snapshot.forEach(docSnap=>{
@@ -145,28 +145,28 @@ async function loadDashboard() {
 
     const div = document.createElement("div");
     div.className = "border-b py-2 flex justify-between items-center";
-
     div.innerHTML = `
       <div>
         <strong>${bossName}</strong> - ${timeStr}<br>
-        <span class="text-sm text-gray-600">Participants: ${participantNames}</span>
+        <span class="text-sm text-gray-600">Participants: ${participantNames}</span><br>
+        <span class="text-sm text-gray-600">💎 ${data.totalDiamond || 0} | ₱ ${data.totalPeso || 0}</span>
       </div>
       <div>
         <button class="bg-yellow-500 text-white p-1 rounded edit-btn">Edit</button>
         <button class="bg-red-500 text-white p-1 rounded delete-btn ml-1">Delete</button>
       </div>
     `;
+
     // Delete
-    div.querySelector(".delete-btn").onclick = async ()=>{
-      if(confirm("Delete this entry?")) {
+    div.querySelector(".delete-btn").onclick = async()=>{
+      if(confirm("Delete this entry?")){
         await deleteDoc(doc(dbAdmin, "weeks", currentWeekId, "participations", docSnap.id));
         loadDashboard();
       }
     };
 
     // Edit
-    div.querySelector(".edit-btn").onclick = async ()=>{
-      // Check participants
+    div.querySelector(".edit-btn").onclick = async()=>{
       const newMembers = prompt("Edit member IDs (comma-separated):", data.members.join(","));
       if(newMembers){
         const newArray = newMembers.split(",").map(s=>s.trim()).filter(s=>s!=="");
@@ -179,7 +179,7 @@ async function loadDashboard() {
   });
 }
 
-// ------------------- Week change
+// ------------------- Week Change
 weekSelector.addEventListener("change", e=>{
   currentWeekId = e.target.value;
   loadDashboard();
