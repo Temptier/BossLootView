@@ -14,7 +14,7 @@ let currentBoss = '';
 let currentParticipants = [];
 let tempLootItems = [];
 
-// --- Initialize dropdowns ---
+// --- Populate boss/member dropdowns on page load ---
 function populateDropdowns() {
     modalBoss.innerHTML = '';
     ['1st Boss','2nd Boss','3rd Boss','4th Boss'].forEach(b=>{
@@ -34,7 +34,7 @@ function populateDropdowns() {
 }
 populateDropdowns();
 
-// --- Confirm Boss & Participants ---
+// --- Confirm Selection (inline) ---
 function confirmSelection() {
     const boss = modalBoss.value;
     const participants = Array.from(modalMember.selectedOptions).map(o=>o.value);
@@ -43,47 +43,15 @@ function confirmSelection() {
     currentBoss = boss;
     currentParticipants = participants;
 
-    // Update Selected Boss
     selectedBossList.innerHTML = '';
     selectedBossList.textContent = boss;
 
-    // Update Participants List
     participantList.innerHTML = '';
     participants.forEach(p=>{
         const li = document.createElement('li');
         li.textContent = p;
         participantList.appendChild(li);
     });
-}
-
-// --- Add Boss / Member dynamically ---
-function addNewBoss() {
-    const name = document.getElementById('new-boss-name').value.trim();
-    if(!name) return alert("Enter boss name.");
-    if(!Array.from(modalBoss.options).some(o => o.value === name)){
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        modalBoss.appendChild(opt);
-        modalBoss.value = name; // select immediately
-        alert(`Boss "${name}" added.`);
-        document.getElementById('new-boss-name').value = '';
-    } else alert("Boss already exists.");
-}
-
-function addNewMember() {
-    const name = document.getElementById('new-member-name').value.trim();
-    if(!name) return alert("Enter member name.");
-    if(!allMembers.includes(name)){
-        allMembers.push(name);
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        modalMember.appendChild(opt);
-        opt.selected = true; // select immediately
-        alert(`Member "${name}" added.`);
-        document.getElementById('new-member-name').value = '';
-    } else alert("Member already exists.");
 }
 
 // --- Temporary Loot ---
@@ -103,7 +71,6 @@ function renderTempLoot() {
     tempLootItemsDiv.innerHTML = '';
     tempLootItems.forEach((item,i)=>{
         const div = document.createElement('div');
-        div.className = 'temp-loot-row';
         div.textContent = `${item.name} : ${item.price}`;
         const removeBtn = document.createElement('button');
         removeBtn.textContent = 'Remove';
@@ -167,6 +134,7 @@ function addNewLootEntry() {
         }
 
         priceInput.addEventListener('input', updateEntryTotal);
+
         settleBtn.addEventListener('click', ()=>{
             div.classList.add('settled');
             div.querySelector('.loot-price-input').disabled = true;
@@ -235,4 +203,35 @@ function saveEntries() {
         entries.push({boss, date, members, loot});
     });
     localStorage.setItem('guildLootEntries', JSON.stringify(entries));
+}
+
+// --- Add New Boss dynamically ---
+function addNewBoss() {
+    const name = document.getElementById('new-boss-name').value.trim();
+    if(!name) return alert("Enter boss name.");
+    if(!Array.from(modalBoss.options).some(o => o.value === name)){
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        modalBoss.appendChild(opt);
+        modalBoss.value = name; // select immediately
+        alert(`Boss "${name}" added.`);
+        document.getElementById('new-boss-name').value = '';
+    } else alert("Boss already exists.");
+}
+
+// --- Add New Member dynamically ---
+function addNewMember() {
+    const name = document.getElementById('new-member-name').value.trim();
+    if(!name) return alert("Enter member name.");
+    if(!allMembers.includes(name)){
+        allMembers.push(name);
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        modalMember.appendChild(opt);
+        opt.selected = true; // select immediately
+        alert(`Member "${name}" added.`);
+        document.getElementById('new-member-name').value = '';
+    } else alert("Member already exists.");
 }
