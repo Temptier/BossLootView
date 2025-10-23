@@ -10,37 +10,20 @@
 
   <h1 class="text-2xl font-bold mb-4">Guild Boss Tracker - View Only</h1>
 
-  <!-- Admin Access -->
-  <div class="mb-4">
-    <button id="admin-access-btn" class="bg-blue-600 text-white p-2 rounded">Admin Login</button>
-  </div>
-
   <!-- Week Selector -->
   <div class="mb-4">
     <label class="block font-semibold mb-1">Select Week:</label>
     <select id="week-selector" class="border p-2 rounded w-full"></select>
   </div>
 
-  <!-- Dashboard -->
-  <h2 class="text-xl font-bold mb-2">Member Participation & Earnings</h2>
-  <div id="dashboard-content" class="bg-white p-4 rounded shadow max-h-[400px] overflow-y-auto mb-6"></div>
+  <!-- Dashboard: Members Participation + Earnings -->
+  <h2 class="text-xl font-bold mb-2">Member Dashboard</h2>
+  <div id="dashboard-content" class="bg-white p-4 rounded shadow max-h-[400px] overflow-y-auto"></div>
 
-  <h2 class="text-xl font-bold mb-2">Boss Participants</h2>
+  <!-- Boss Participants per Entry -->
+  <h2 class="text-xl font-bold mt-4 mb-2">Boss Participants</h2>
   <div id="boss-participants-content" class="bg-white p-4 rounded shadow max-h-[400px] overflow-y-auto"></div>
 
   <script type="module" src="js/view.js"></script>
-
-  <!-- Admin Password Script -->
-  <script>
-    document.getElementById("admin-access-btn").addEventListener("click", () => {
-      const password = prompt("Enter admin password:");
-      const correctPassword = "Guild123"; // Change to your password
-      if(password === correctPassword) {
-        window.location.href = "admin.html";
-      } else {
-        alert("Incorrect password!");
-      }
-    });
-  </script>
 </body>
 </html>
