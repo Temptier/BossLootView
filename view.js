@@ -9,12 +9,12 @@ import {
 
 // --- Firebase Config for VIEW ---
 const firebaseConfig = {
-  apiKey: "AIzaSyCgkO44xHVeQv9XJvjIktAQhdet9J-6hvM",
-  authDomain: "guildlootsview.firebaseapp.com",
-  projectId: "guildlootsview",
-  storageBucket: "guildlootsview.firebasestorage.app",
-  messagingSenderId: "535298106967",
-  appId: "1:535298106967:web:c38f45b23b8782e2026512"
+  apiKey: "AIzaSyBd1oHWW3HoQ6o9f3FP9W9aV1mqwEifQzw",
+  authDomain: "guildlootsadmin.firebaseapp.com",
+  projectId: "guildlootsadmin",
+  storageBucket: "guildlootsadmin.firebasestorage.app",
+  messagingSenderId: "895884983655",
+  appId: "1:895884983655:web:2588fbb854394fb3ed43c2"
 };
 
 const app = initializeApp(firebaseConfig);
