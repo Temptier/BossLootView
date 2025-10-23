@@ -2,7 +2,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebas
 import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
 
 // ------------------- Admin Login
-const adminPassword = "YOUR_SECRET_PASSWORD"; // Change this to your secret password
+const adminPassword = "PASSWORD"; // Change this to your secret password
 document.getElementById("admin-login-btn").onclick = () => {
   const input = prompt("Enter admin password:");
   if(input === adminPassword){
