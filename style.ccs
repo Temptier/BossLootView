@@ -1,168 +1,159 @@
-/* General Body & Headings */
+/* ===== Global ===== */
 body {
-    font-family: Arial, sans-serif;
-    background: #f0f2f5;
-    color: #333;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f6f8;
     margin: 0;
     padding: 20px;
-}
-h1 {
-    color: #0077cc;
-    margin-bottom: 10px;
+    color: #333;
 }
 
-/* Buttons */
+h1, h2, h3 {
+    margin: 0 0 10px 0;
+    color: #222;
+}
+
+h1 {
+    font-size: 28px;
+    margin-bottom: 20px;
+}
+
+/* ===== Buttons ===== */
 button {
-    padding: 8px 15px;
-    background: #0077cc;
-    color: white;
+    background-color: #4f46e5;
+    color: #fff;
     border: none;
+    padding: 6px 12px;
     border-radius: 5px;
     cursor: pointer;
+    font-size: 14px;
+    margin-left: 5px;
+    transition: background 0.3s;
 }
-button:hover { background: #005fa3; }
 
-/* Admin & Back Buttons */
-.admin-btn {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    background: #ff4d4f;
+button:hover {
+    background-color: #3730a3;
 }
-.admin-btn:hover { background: #cc3a3f; }
 
 .back-btn {
-    position: fixed;
-    top: 20px;
-    left: 20px;
-    background: #ff4d4f;
+    background-color: #f87171;
+    margin-bottom: 20px;
 }
-.back-btn:hover { background: #cc3a3f; }
 
-/* Panels */
+.back-btn:hover {
+    background-color: #b91c1c;
+}
+
+/* ===== Panels ===== */
 .panel {
-    background: white;
-    padding: 20px;
+    background-color: #fff;
     border-radius: 10px;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    margin-top: 20px;
-}
-.panel h2 { margin-top: 0; color: #333; }
-
-/* List Containers */
-.list-container {
-    display: flex;
-    gap: 40px;
-    margin-top: 20px;
-}
-.list {
-    flex: 1;
-    background: #f9f9f9;
-    padding: 15px;
-    border-radius: 8px;
-}
-.list h3 { margin-top: 0; color: #0077cc; }
-.list ul {
-    list-style-type: disc;
-    padding-left: 20px;
-    margin: 5px 0;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    padding: 20px;
+    margin-bottom: 20px;
 }
 
-/* Typing slot */
-.typing-slot {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
-}
-.typing-slot input {
-    flex: 1;
-    padding: 8px;
+/* ===== Inputs ===== */
+input[type="text"],
+input[type="number"],
+select {
+    padding: 6px 10px;
     border-radius: 5px;
     border: 1px solid #ccc;
     font-size: 14px;
-}
-
-/* Input button slot */
-.input-slot { margin-top: 15px; }
-
-/* Loot Item Entries */
-.loot-item {
-    background: #f9f9f9;
-    padding: 10px;
-    border-radius: 8px;
+    margin-right: 5px;
     margin-bottom: 10px;
 }
-.loot-item.settled {
-    opacity: 0.6;
-    text-decoration: line-through;
-}
-.loot-item div { margin-bottom: 5px; }
-.loot-item input {
-    padding: 5px;
-    font-size: 14px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-    width: 70%;
-    margin-right: 5px;
-}
-.loot-name-input {
-    font-weight: bold;
-    width: auto;
-    border: none;
-    background: none;
-}
-.loot-buttons button, .loot-row button {
-    margin-right: 5px;
-    padding: 5px 10px;
-    font-size: 12px;
-}
-.loot-list-container { margin-top: 5px; }
-.loot-list-container div { margin-bottom: 5px; }
-.loot-row.settled {
-    opacity: 0.5;
-    text-decoration: line-through;
+
+input:focus,
+select:focus {
+    outline: none;
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 2px rgba(79, 70, 229, 0.2);
 }
 
-/* Summary Panel */
-.summary-panel {
-    background: #e2f0fb;
-    padding: 15px;
-    border-radius: 8px;
+/* ===== Lists ===== */
+.list-container {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
     margin-top: 10px;
 }
 
-/* Modal */
-.modal {
-    display: none;
-    position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    overflow: auto;
-    background-color: rgba(0,0,0,0.5);
-    justify-content: center;
-    align-items: center;
+.list {
+    flex: 1 1 200px;
 }
-.modal-content {
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 10px;
-    width: 90%;
-    max-width: 400px;
-    text-align: center;
+
+.list ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
 }
-.modal-content select {
-    width: 80%;
-    padding: 10px;
-    margin: 10px 0;
+
+.list li {
+    background-color: #f3f4f6;
+    padding: 6px 10px;
+    margin-bottom: 5px;
     border-radius: 5px;
-    border: 1px solid #ccc;
-    font-size: 16px;
+    font-size: 14px;
 }
-.modal-content select[multiple] { height: 120px; }
-.modal-content button {
-    width: 40%;
-    margin: 10px 5px 0 5px;
+
+/* ===== Loot Items ===== */
+.loot-list-container {
+    margin: 10px 0;
+}
+
+.loot-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 5px;
+    padding: 6px 10px;
+    background-color: #eef2ff;
+    border-radius: 5px;
+}
+
+.loot-name-input {
+    font-weight: 600;
+}
+
+.loot-price-input {
+    width: 80px;
+    padding: 4px 6px;
+}
+
+.settled {
+    background-color: #d1fae5 !important;
+}
+
+.loot-buttons {
+    margin-top: 10px;
+}
+
+/* ===== Temporary Loot Display ===== */
+#temp-loot-items div {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f3f4f6;
+    padding: 5px 10px;
+    margin-bottom: 5px;
+    border-radius: 5px;
+}
+
+/* ===== Summary ===== */
+.summary-panel {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e5e7eb;
+}
+
+.summary-panel div {
+    margin-bottom: 5px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 768px) {
+    .list-container {
+        flex-direction: column;
+    }
 }
