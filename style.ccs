@@ -1,0 +1,168 @@
+/* General Body & Headings */
+body {
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+    color: #333;
+    margin: 0;
+    padding: 20px;
+}
+h1 {
+    color: #0077cc;
+    margin-bottom: 10px;
+}
+
+/* Buttons */
+button {
+    padding: 8px 15px;
+    background: #0077cc;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+button:hover { background: #005fa3; }
+
+/* Admin & Back Buttons */
+.admin-btn {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: #ff4d4f;
+}
+.admin-btn:hover { background: #cc3a3f; }
+
+.back-btn {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: #ff4d4f;
+}
+.back-btn:hover { background: #cc3a3f; }
+
+/* Panels */
+.panel {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    margin-top: 20px;
+}
+.panel h2 { margin-top: 0; color: #333; }
+
+/* List Containers */
+.list-container {
+    display: flex;
+    gap: 40px;
+    margin-top: 20px;
+}
+.list {
+    flex: 1;
+    background: #f9f9f9;
+    padding: 15px;
+    border-radius: 8px;
+}
+.list h3 { margin-top: 0; color: #0077cc; }
+.list ul {
+    list-style-type: disc;
+    padding-left: 20px;
+    margin: 5px 0;
+}
+
+/* Typing slot */
+.typing-slot {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+.typing-slot input {
+    flex: 1;
+    padding: 8px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 14px;
+}
+
+/* Input button slot */
+.input-slot { margin-top: 15px; }
+
+/* Loot Item Entries */
+.loot-item {
+    background: #f9f9f9;
+    padding: 10px;
+    border-radius: 8px;
+    margin-bottom: 10px;
+}
+.loot-item.settled {
+    opacity: 0.6;
+    text-decoration: line-through;
+}
+.loot-item div { margin-bottom: 5px; }
+.loot-item input {
+    padding: 5px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    width: 70%;
+    margin-right: 5px;
+}
+.loot-name-input {
+    font-weight: bold;
+    width: auto;
+    border: none;
+    background: none;
+}
+.loot-buttons button, .loot-row button {
+    margin-right: 5px;
+    padding: 5px 10px;
+    font-size: 12px;
+}
+.loot-list-container { margin-top: 5px; }
+.loot-list-container div { margin-bottom: 5px; }
+.loot-row.settled {
+    opacity: 0.5;
+    text-decoration: line-through;
+}
+
+/* Summary Panel */
+.summary-panel {
+    background: #e2f0fb;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 10px;
+}
+
+/* Modal */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.5);
+    justify-content: center;
+    align-items: center;
+}
+.modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+}
+.modal-content select {
+    width: 80%;
+    padding: 10px;
+    margin: 10px 0;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+    font-size: 16px;
+}
+.modal-content select[multiple] { height: 120px; }
+.modal-content button {
+    width: 40%;
+    margin: 10px 5px 0 5px;
+}
