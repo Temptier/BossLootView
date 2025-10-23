@@ -212,5 +212,36 @@ function saveEntries() {
     localStorage.setItem('guildLootEntries', JSON.stringify(entries));
 }
 
+// --- Add New Boss dynamically ---
+function addNewBoss() {
+    const name = document.getElementById('new-boss-name').value.trim();
+    if(!name) return alert("Enter boss name.");
+    if(!Array.from(modalBoss.options).some(o => o.value === name)){
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        modalBoss.appendChild(opt);
+        modalBoss.value = name; // select immediately
+        alert(`Boss "${name}" added.`);
+        document.getElementById('new-boss-name').value = '';
+    } else alert("Boss already exists.");
+}
+
+// --- Add New Member dynamically ---
+function addNewMember() {
+    const name = document.getElementById('new-member-name').value.trim();
+    if(!name) return alert("Enter member name.");
+    if(!allMembers.includes(name)){
+        allMembers.push(name);
+        const opt = document.createElement('option');
+        opt.value = name;
+        opt.textContent = name;
+        modalMember.appendChild(opt);
+        opt.selected = true; // select immediately
+        alert(`Member "${name}" added.`);
+        document.getElementById('new-member-name').value = '';
+    } else alert("Member already exists.");
+}
+
 // Close modal by clicking outside
 window.onclick = e => { if(e.target === modal) closeModal(); }
