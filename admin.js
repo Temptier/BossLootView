@@ -188,9 +188,8 @@ addNewLootEntryBtn.addEventListener('click', async () => {
     await addDoc(lootCollection,{
         boss: selectedBoss,
         members: selectedParticipants,
-        loot: lootItems,
-        date: dateStr,
-        settled:false
+        loot: lootItems.map(l=>({name:l.name, price:l.price, settled:false})),
+        date: dateStr
     });
 
     // Reset
@@ -211,35 +210,37 @@ onSnapshot(lootQuery, snapshot=>{
         const entryId = docSnap.id;
 
         const entryDiv = document.createElement('div');
-        entryDiv.className='p-3 border rounded-md bg-gray-50 mb-3';
+        entryDiv.className='p-3 border rounded-lg bg-gray-50 mb-3';
 
+        // Header
         const headerDiv = document.createElement('div');
         headerDiv.className='flex justify-between items-center cursor-pointer';
-        headerDiv.innerHTML = `<div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>
-                               <div><strong>Status:</strong> ${entry.settled?'Settled':'Active'}</div>`;
+        headerDiv.innerHTML = `<div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>`;
         entryDiv.appendChild(headerDiv);
 
         const expandedDiv = document.createElement('div');
         expandedDiv.style.display='none';
         expandedDiv.className='mt-2 pl-2 space-y-2';
 
-        // Members
+        // Participants
         const membersDiv = document.createElement('div');
         membersDiv.innerHTML='<strong>Participants:</strong>';
         const ulMembers = document.createElement('ul');
         ulMembers.className='ml-4 list-disc';
         entry.members.forEach(m=>{
-            const li = document.createElement('li'); li.textContent=m; ulMembers.appendChild(li);
+            const li = document.createElement('li');
+            li.textContent=m;
+            ulMembers.appendChild(li);
         });
         membersDiv.appendChild(ulMembers);
         expandedDiv.appendChild(membersDiv);
 
-        // Loot items
+        // Loot Items with per-loot Settle
         const lootDiv = document.createElement('div');
         lootDiv.innerHTML='<strong>Loot:</strong>';
         const ulLoot = document.createElement('ul');
         ulLoot.className='ml-4 space-y-1';
-        entry.loot.forEach((item,index)=>{
+        entry.loot.forEach((item, index)=>{
             const li = document.createElement('li');
             li.className='flex justify-between items-center';
 
@@ -247,56 +248,84 @@ onSnapshot(lootQuery, snapshot=>{
             nameSpan.textContent=item.name;
             li.appendChild(nameSpan);
 
-            const priceBtn = document.createElement('button');
-            priceBtn.textContent=item.price;
-            priceBtn.className='bg-indigo-200 px-2 py-1 rounded';
-            priceBtn.onclick=()=>{
-                lootToEdit={entryId, lootIndex:index, lootItem:item};
-                editLootNameSpan.textContent=item.name;
-                editLootPriceInput.value=item.price;
-                editLootModal.classList.remove('hidden');
-            };
-            li.appendChild(priceBtn);
+            const rightDiv = document.createElement('div');
+            rightDiv.className='flex items-center space-x-2';
 
+            if(!item.settled){
+                // Editable price
+                const priceBtn = document.createElement('button');
+                priceBtn.textContent=item.price;
+                priceBtn.className='bg-indigo-200 px-2 py-1 rounded';
+                priceBtn.onclick=()=>{
+                    lootToEdit={entryId, lootIndex:index, lootItem:item};
+                    editLootNameSpan.textContent=item.name;
+                    editLootPriceInput.value=item.price;
+                    editLootModal.classList.remove('hidden');
+                };
+                rightDiv.appendChild(priceBtn);
+
+                // Per-loot Settle button
+                const settleBtn = document.createElement('button');
+                settleBtn.textContent='Settle';
+                settleBtn.className='bg-green-500 text-white px-2 py-1 rounded hover:bg-green-600';
+                settleBtn.onclick=async ()=>{
+                    const entryRef = doc(firebaseDB,'lootEntries',entryId);
+                    const updatedLoot = entry.loot.map((l,i)=>i===index?{...l,settled:true}:l);
+                    await updateDoc(entryRef,{loot:updatedLoot});
+                };
+                rightDiv.appendChild(settleBtn);
+            } else {
+                const settledSpan = document.createElement('span');
+                settledSpan.textContent=item.price;
+                settledSpan.style.textDecoration='line-through';
+                settledSpan.style.color='#6b7280';
+                rightDiv.appendChild(settledSpan);
+            }
+
+            li.appendChild(rightDiv);
             ulLoot.appendChild(li);
         });
         lootDiv.appendChild(ulLoot);
         expandedDiv.appendChild(lootDiv);
 
-        // Total price
+        // Total Price
         const totalPrice = entry.loot.reduce((sum,i)=>sum+i.price,0);
         const totalDiv = document.createElement('div');
         totalDiv.className='font-semibold';
         totalDiv.textContent=`Total Price: ${totalPrice}`;
         expandedDiv.appendChild(totalDiv);
 
-        // Per-loot share
+        // Per Loot Share
         const perLootDiv = document.createElement('div');
         perLootDiv.innerHTML='<strong>Per Loot Share:</strong>';
-        const ulShare=document.createElement('ul');
+        const ulShare = document.createElement('ul');
         ulShare.className='ml-4 list-disc';
         entry.loot.forEach(l=>{
-            const share = entry.members.length>0 ? (l.price/entry.members.length).toFixed(2):0;
-            const li=document.createElement('li');
+            const share = entry.members.length>0?(l.price/entry.members.length).toFixed(2):0;
+            const li = document.createElement('li');
             li.textContent=`${l.name}: ${share} per member`;
             ulShare.appendChild(li);
         });
         perLootDiv.appendChild(ulShare);
         expandedDiv.appendChild(perLootDiv);
 
-        // Remove button
-        const removeBtn=document.createElement('button');
+        entryDiv.appendChild(expandedDiv);
+
+        // Toggle expand/collapse
+        headerDiv.addEventListener('click', ()=>{
+            expandedDiv.style.display = expandedDiv.style.display==='none'?'block':'none';
+        });
+
+        // Remove Entry Button
+        const removeBtn = document.createElement('button');
         removeBtn.textContent='Remove Entry';
-        removeBtn.className='bg-red-500 text-white px-3 py-1 rounded mt-2 hover:bg-red-600';
+        removeBtn.className='bg-red-500 text-white px-2 py-1 rounded mt-2 hover:bg-red-600';
         removeBtn.onclick=async ()=>{
             if(confirm('Remove this loot entry?')){
                 await deleteDoc(doc(firebaseDB,'lootEntries',entryId));
             }
         };
-        expandedDiv.appendChild(removeBtn);
-
-        entryDiv.appendChild(expandedDiv);
-        headerDiv.addEventListener('click', ()=>{expandedDiv.style.display = expandedDiv.style.display==='none'?'block':'none';});
+        entryDiv.appendChild(removeBtn);
 
         lootListEl.appendChild(entryDiv);
     });
@@ -305,21 +334,19 @@ onSnapshot(lootQuery, snapshot=>{
 // ===== Edit Loot Price Modal =====
 saveLootPriceBtn.addEventListener('click', async ()=>{
     if(!lootToEdit) return;
-    const newPrice=parseFloat(editLootPriceInput.value)||0;
-    const entryRef=doc(firebaseDB,'lootEntries',lootToEdit.entryId);
-    const entrySnap = await getDocs(query(lootCollection));
-    const entryDoc=lootToEdit.entryId; // Already have entryId
-    const updatedLoot = lootToEdit.lootItem;
-    updatedLoot.price=newPrice;
+    const newPrice = parseFloat(editLootPriceInput.value)||0;
+    const entryRef = doc(firebaseDB,'lootEntries',lootToEdit.entryId);
+    const currentLoot = lootToEdit.lootItem ? lootToEdit.lootItem : [];
     const currentDoc = await entryRef.get();
-    const currentLoot = (currentDoc.data() && currentDoc.data().loot) || [];
-    const finalLoot = currentLoot.map((l,i)=>i===lootToEdit.lootIndex?{...l, price:newPrice}:l);
-    await updateDoc(entryRef,{loot:finalLoot});
-    editLootModal.classList.add('hidden');
+    const lootArray = (currentDoc.data() && currentDoc.data().loot) || [];
+    const updatedLoot = lootArray.map((l,i)=> i===lootToEdit.lootIndex ? {...l, price:newPrice} : l);
+    await updateDoc(entryRef,{loot:updatedLoot});
+
     lootToEdit=null;
+    editLootModal.classList.add('hidden');
 });
 
 closeLootPriceBtn.addEventListener('click', ()=>{
-    editLootModal.classList.add('hidden');
     lootToEdit=null;
+    editLootModal.classList.add('hidden');
 });
