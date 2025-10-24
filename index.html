@@ -58,8 +58,42 @@
   </div>
 </div>
 
-<!-- Modals: Boss / Participants / Edit Loot -->
-<!-- Include modals exactly as in our previous admin.html -->
+<!-- Boss Modal -->
+<div id="boss-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+  <div class="bg-white p-4 rounded-lg w-80">
+    <h3 class="font-bold mb-2">Select Boss</h3>
+    <div id="modal-boss-list" class="space-y-1 max-h-64 overflow-y-auto mb-3"></div>
+    <div class="flex justify-end gap-2">
+      <button id="save-boss-btn" class="bg-green-500 text-white px-3 py-1 rounded">Save</button>
+      <button id="close-boss-btn" class="bg-gray-300 px-3 py-1 rounded">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Participants Modal -->
+<div id="participant-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+  <div class="bg-white p-4 rounded-lg w-80">
+    <h3 class="font-bold mb-2">Select Participants</h3>
+    <div id="modal-member-list" class="space-y-1 max-h-64 overflow-y-auto mb-3"></div>
+    <div class="flex justify-end gap-2">
+      <button id="save-participants-btn" class="bg-green-500 text-white px-3 py-1 rounded">Save</button>
+      <button id="close-participants-btn" class="bg-gray-300 px-3 py-1 rounded">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Edit Loot Modal -->
+<div id="edit-loot-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+  <div class="bg-white p-4 rounded-lg w-72">
+    <h3 class="font-bold mb-2">Edit Loot Price</h3>
+    <p>Loot: <span id="edit-loot-name"></span></p>
+    <input id="edit-loot-price-input" type="number" class="border p-1 rounded w-full mb-3">
+    <div class="flex justify-end gap-2">
+      <button id="save-loot-price-btn" class="bg-green-500 text-white px-3 py-1 rounded">Save</button>
+      <button id="close-loot-price-btn" class="bg-gray-300 px-3 py-1 rounded">Close</button>
+    </div>
+  </div>
+</div>
 
 <script type="module" src="admin.js"></script>
 </body>
