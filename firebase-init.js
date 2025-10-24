@@ -6,10 +6,10 @@ const firebaseConfig = {
   apiKey: "AIzaSyCgkO44xHVeQv9XJvjIktAQhdet9J-6hvM",
   authDomain: "guildlootsview.firebaseapp.com",
   projectId: "guildlootsview",
-  storageBucket: "guildlootsview.firebasestorage.app",
+  storageBucket: "guildlootsview.appspot.com",
   messagingSenderId: "535298106967",
   appId: "1:535298106967:web:c38f45b23b8782e2026512"
 };
 
-export const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
 export const firebaseDB = getFirestore(app);
