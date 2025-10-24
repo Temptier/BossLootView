@@ -171,156 +171,130 @@ closeParticipantsBtn.addEventListener('click', ()=>{document.getElementById('par
 
 // ===== Add New Loot Entry =====
 addNewLootEntryBtn.addEventListener('click', async () => {
-    if (!selectedBoss) return alert('Select a boss');
-    if (selectedParticipants.length === 0) return alert('Select participants');
-    if (lootItems.length === 0) return alert('Add at least one loot item');
+    if(!selectedBoss) return alert('Select a boss');
+    if(selectedParticipants.length===0) return alert('Select participants');
+    if(lootItems.length===0) return alert('Add at least one loot item');
 
-    // Validate existence
-    if (!bosses.includes(selectedBoss)) return alert('Selected boss does not exist');
-    const invalidMembers = selectedParticipants.filter(p => !members.includes(p));
-    if (invalidMembers.length > 0) return alert(`Invalid participants: ${invalidMembers.join(', ')}`);
+    const now = new Date();
+    const dateStr = now.toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit', hour12:true });
 
-    const date = new Date().toLocaleString('en-US', {
-        month: 'short',
-        day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-
-    const lootEntry = {
+    await addDoc(lootCollection, {
         boss: selectedBoss,
-        date: date,
         members: selectedParticipants,
         loot: lootItems,
+        date: dateStr,
         settled: false
-    };
+    });
 
-    try {
-        await addDoc(lootCollection, lootEntry);
-
-        // Clear temp selections
-        lootItems=[];
-        renderLootItems();
-        selectedBoss=null;
-        selectedBossSpan.textContent='None';
-        selectedParticipants=[];
-        selectedParticipantsEl.innerHTML='';
-        alert('Loot entry added successfully!');
-    } catch (err) {
-        console.error(err);
-        alert('Failed to add loot entry');
-    }
+    // Reset form
+    selectedBoss = null;
+    selectedBossSpan.textContent = 'None';
+    selectedParticipants = [];
+    selectedParticipantsEl.innerHTML='';
+    lootItems = [];
+    renderLootItems();
 });
 
 // ===== Render Recorded Loot Entries =====
 const lootQuery = query(lootCollection, orderBy('date','desc'));
-onSnapshot(lootQuery, snapshot=>{
+
+onSnapshot(lootQuery, snapshot => {
     lootListEl.innerHTML='';
     snapshot.forEach(docSnap=>{
-        const entry = {id: docSnap.id, ...docSnap.data()};
+        const entry = docSnap.data();
+        const entryId = docSnap.id;
+
         const entryDiv = document.createElement('div');
-        entryDiv.style.padding='10px';
-        entryDiv.style.border='1px solid #4f46e5';
-        entryDiv.style.borderRadius='8px';
-        entryDiv.style.backgroundColor = entry.settled?'#f3f4f6':'#ffffff';
+        entryDiv.className='p-3 border rounded-md bg-gray-50';
+        entryDiv.style.borderColor='#4f46e5';
 
-        // Collapsed Header
-        const collapsedDiv = document.createElement('div');
-        collapsedDiv.style.display='flex';
-        collapsedDiv.style.justifyContent='space-between';
-        collapsedDiv.style.alignItems='center';
-        collapsedDiv.innerHTML = `<div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>
-                                 <div><strong>Status:</strong> ${entry.settled?'Settled':'Active'}</div>`;
+        // Collapsible header
+        const headerDiv = document.createElement('div');
+        headerDiv.className='flex justify-between items-center cursor-pointer';
+        headerDiv.innerHTML = `<div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>
+                               <div><strong>Status:</strong> ${entry.settled?'Settled':'Active'}</div>`;
+        entryDiv.appendChild(headerDiv);
 
-        // Expanded content
         const expandedDiv = document.createElement('div');
         expandedDiv.style.display='none';
-        expandedDiv.style.marginTop='10px';
-        expandedDiv.style.paddingLeft='5px';
+        expandedDiv.className='mt-2 pl-2';
 
+        // Members
         const membersDiv = document.createElement('div');
-        membersDiv.innerHTML=`<strong>Members:</strong> ${entry.members.join(', ')}`;
+        membersDiv.innerHTML=`<strong>Participants:</strong> ${entry.members.join(', ')}`;
+        membersDiv.className='mb-2';
         expandedDiv.appendChild(membersDiv);
 
+        // Loot items
         const lootContainer = document.createElement('div');
-        entry.loot.forEach((item,idx)=>{
-            const lootRow=document.createElement('div');
-            lootRow.style.display='flex';
-            lootRow.style.justifyContent='space-between';
-            lootRow.style.alignItems='center';
-            lootRow.style.padding='3px 0';
-
+        lootContainer.className='space-y-1';
+        entry.loot.forEach(item=>{
+            const lootRow = document.createElement('div');
+            lootRow.className='flex justify-between';
+            lootRow.innerHTML=`<span>${item.name}</span>`;
             if(entry.settled){
-                lootRow.innerHTML=`<span>${item.name}</span><span>${item.price}</span>`;
-                lootRow.style.color='#6b7280';
-                lootRow.style.textDecoration='line-through';
+                const priceSpan = document.createElement('span');
+                priceSpan.textContent = item.price;
+                priceSpan.style.textDecoration='line-through';
+                priceSpan.style.color='#6b7280';
+                lootRow.appendChild(priceSpan);
             } else {
-                const nameSpan = document.createElement('span');
-                nameSpan.textContent = item.name;
-
                 const priceInput = document.createElement('input');
-                priceInput.type = 'number';
+                priceInput.type='number';
                 priceInput.value = item.price;
-                priceInput.style.width = '60px';
-                priceInput.addEventListener('change', async () => {
+                priceInput.style.width='60px';
+                priceInput.addEventListener('change', async ()=>{
                     const newPrice = parseFloat(priceInput.value) || 0;
-                    const updatedLoot = entry.loot.map((l,i) => i===idx ? {...l, price:newPrice} : l);
-                    await updateDoc(doc(firebaseDB,'lootEntries',entry.id), {loot: updatedLoot});
+                    const updatedLoot = entry.loot.map((l,i)=>i===entry.loot.indexOf(item)? {...l,price:newPrice}:l);
+                    await updateDoc(doc(firebaseDB,'lootEntries',entryId), {loot:updatedLoot});
                 });
-
-                lootRow.appendChild(nameSpan);
                 lootRow.appendChild(priceInput);
             }
             lootContainer.appendChild(lootRow);
         });
         expandedDiv.appendChild(lootContainer);
 
-        // Toggle details button
-        const toggleBtn = document.createElement('button');
-        toggleBtn.textContent = 'Show Details';
-        toggleBtn.style.marginTop='5px';
-        toggleBtn.onclick = () => {
-            if(expandedDiv.style.display === 'none'){
-                expandedDiv.style.display='block';
-                toggleBtn.textContent='Hide Details';
-            } else {
-                expandedDiv.style.display='none';
-                toggleBtn.textContent='Show Details';
-            }
-        };
+        // Total price & per member share
+        const totalPrice = entry.loot.reduce((sum,i)=>sum+i.price,0);
+        const perMember = entry.members.length>0 ? (totalPrice/entry.members.length).toFixed(2):0;
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className='mt-2';
+        summaryDiv.innerHTML = `<strong>Total Price:</strong> ${totalPrice} | <strong>Each Member Share:</strong> ${perMember}`;
+        expandedDiv.appendChild(summaryDiv);
+
+        entryDiv.appendChild(expandedDiv);
+
+        // Toggle details
+        headerDiv.addEventListener('click', ()=>{
+            expandedDiv.style.display = expandedDiv.style.display==='none'?'block':'none';
+        });
 
         // Action buttons
         const actionDiv = document.createElement('div');
         actionDiv.style.marginTop='5px';
-
         if(!entry.settled){
             const settleBtn = document.createElement('button');
             settleBtn.textContent='Settle';
             settleBtn.style.backgroundColor='#10b981';
             settleBtn.style.color='#fff';
             settleBtn.style.marginRight='5px';
-            settleBtn.onclick = async () => {
-                await updateDoc(doc(firebaseDB,'lootEntries',entry.id), {settled:true});
+            settleBtn.onclick=async ()=>{
+                await updateDoc(doc(firebaseDB,'lootEntries',entryId), {settled:true});
             };
             actionDiv.appendChild(settleBtn);
         }
-
         const removeBtn = document.createElement('button');
         removeBtn.textContent='Remove';
         removeBtn.style.backgroundColor='#ef4444';
         removeBtn.style.color='#fff';
-        removeBtn.onclick = async () => {
+        removeBtn.onclick=async ()=>{
             if(confirm('Remove this loot entry?')){
-                await deleteDoc(doc(firebaseDB,'lootEntries',entry.id));
+                await deleteDoc(doc(firebaseDB,'lootEntries',entryId));
             }
         };
         actionDiv.appendChild(removeBtn);
-
-        // Append everything
-        entryDiv.appendChild(collapsedDiv);
-        entryDiv.appendChild(toggleBtn);
-        entryDiv.appendChild(expandedDiv);
         entryDiv.appendChild(actionDiv);
+
         lootListEl.appendChild(entryDiv);
     });
 });
