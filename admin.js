@@ -1,4 +1,4 @@
-// admin.js 
+// admin.js
 import { firebaseDB } from './firebase-init.js';
 import { collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
