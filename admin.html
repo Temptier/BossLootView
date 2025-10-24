@@ -1,103 +1,78 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Guild Boss Loot - Admin</title>
-    <link rel="stylesheet" href="style.css">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guild Boss Loot - Admin</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 </head>
-<body>
+<body class="bg-gray-50 p-4">
 
-    <!-- ===== Header ===== -->
-    <header style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-        <h1>Guild Boss Loot - Admin</h1>
-        <button onclick="window.location.href='index.html'" 
-                style="background-color:#4f46e5; color:#fff; padding:6px 12px; border-radius:6px;">Back</button>
-    </header>
+<div class="max-w-5xl mx-auto">
 
-    <!-- ===== Add Boss / Add Member Panel ===== -->
-    <div class="panel" style="margin-bottom:20px;">
-        <h2>Add Boss / Member</h2>
-        <div style="display:flex; gap:10px; margin-bottom:10px;">
-            <input type="text" id="new-boss-name" placeholder="New Boss">
-            <button id="add-boss-btn">Add Boss</button>
-        </div>
-        <div style="display:flex; gap:10px;">
-            <input type="text" id="new-member-name" placeholder="New Member">
-            <button id="add-member-btn">Add Member</button>
-        </div>
+  <h1 class="text-3xl font-bold text-center mb-6">Guild Boss Loot - Admin</h1>
+
+  <!-- Add Boss / Member -->
+  <div class="bg-white p-4 mb-4 rounded-lg shadow border border-indigo-500 flex flex-wrap gap-2">
+    <input id="new-boss-name" type="text" placeholder="New Boss" class="border p-2 rounded flex-1">
+    <button id="add-boss-btn" class="bg-indigo-500 text-white px-4 py-2 rounded">Add Boss</button>
+
+    <input id="new-member-name" type="text" placeholder="New Member" class="border p-2 rounded flex-1">
+    <button id="add-member-btn" class="bg-indigo-500 text-white px-4 py-2 rounded">Add Member</button>
+  </div>
+
+  <!-- Boss Loot Panel -->
+  <div class="bg-white p-4 mb-4 rounded-lg shadow border border-indigo-500">
+    <h2 class="text-xl font-semibold mb-3">Boss Loot Panel</h2>
+    <div class="mb-2">
+      <button id="select-boss-btn" class="bg-indigo-500 text-white px-4 py-2 rounded">Select Boss</button>
+      <span id="selected-boss" class="ml-2 font-semibold">None</span>
     </div>
-
-    <!-- ===== Panels Container ===== -->
-    <div class="panels-container">
-
-        <!-- ===== Boss Loot Panel ===== -->
-        <div class="panel">
-            <h2>Boss Loot Panel</h2>
-
-            <!-- Add Loot Item -->
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <input type="text" id="loot-name-input" placeholder="Loot Name">
-                <input type="number" id="loot-price-input" placeholder="Price">
-                <button id="add-loot-btn">Add Loot</button>
-            </div>
-
-            <!-- Loot Items Preview -->
-            <div id="loot-items-container" style="margin-bottom:15px;"></div>
-
-            <!-- Selected Boss -->
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:15px;">
-                <strong>Selected Boss:</strong>
-                <span id="selected-boss">None</span>
-                <button id="select-boss-btn">Select Boss</button>
-            </div>
-
-            <!-- Participants List -->
-            <div style="margin-bottom:15px;">
-                <strong>Participants:</strong>
-                <ul id="selected-participants"></ul>
-                <button id="edit-participants-btn">Select Participants</button>
-            </div>
-
-            <!-- Add New Loot Entry -->
-            <div>
-                <button id="add-new-loot-entry-btn" style="background-color:#10b981; color:#fff;">Add New Loot Entry</button>
-            </div>
-        </div>
-
-        <!-- ===== Recorded Loot Entries Panel ===== -->
-        <div class="panel">
-            <h2>Recorded Loot Entries</h2>
-            <div id="loot-list" style="display:flex; flex-direction:column; gap:10px;"></div>
-        </div>
-
+    <div class="mb-2">
+      <button id="edit-participants-btn" class="bg-indigo-500 text-white px-4 py-2 rounded">Select Participants</button>
+      <ul id="selected-participants" class="ml-2 list-disc pl-5"></ul>
     </div>
-
-    <!-- ===== Modals ===== -->
-
-    <!-- Select Boss Modal -->
-    <div id="boss-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
-        background: rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000;">
-        <div style="background:#fff; padding:20px; border-radius:10px; min-width:300px;">
-            <h3>Select Boss</h3>
-            <div id="modal-boss-list" style="margin-bottom:10px;"></div>
-            <button id="save-boss-btn">Save</button>
-            <button id="close-boss-btn">Close</button>
-        </div>
+    <div class="mb-2">
+      <input id="loot-name-input" type="text" placeholder="Loot Name" class="border p-2 rounded mr-2">
+      <input id="loot-price-input" type="number" placeholder="Price" class="border p-2 rounded mr-2 w-24">
+      <button id="add-loot-btn" class="bg-indigo-500 text-white px-4 py-2 rounded">Add Loot</button>
     </div>
+    <div id="loot-items-container" class="mb-2"></div>
+    <button id="add-new-loot-entry-btn" class="bg-green-500 text-white px-4 py-2 rounded">Add New Loot Entry</button>
+  </div>
 
-    <!-- Select Participants Modal -->
-    <div id="participant-modal" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; 
-        background: rgba(0,0,0,0.5); justify-content:center; align-items:center; z-index:1000;">
-        <div style="background:#fff; padding:20px; border-radius:10px; min-width:300px;">
-            <h3>Select Participants</h3>
-            <div id="modal-member-list" style="margin-bottom:10px;"></div>
-            <button id="save-participants-btn">Save</button>
-            <button id="close-participants-btn">Close</button>
-        </div>
+  <!-- Recorded Loot Entries Panel -->
+  <div class="bg-white p-4 rounded-lg shadow border border-indigo-500">
+    <h2 class="text-xl font-semibold mb-3">Recorded Loot Entries</h2>
+    <div id="loot-list" class="space-y-3"></div>
+  </div>
+
+</div>
+
+<!-- Modals -->
+<div id="boss-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+  <div class="bg-white p-4 rounded-lg w-80">
+    <h3 class="font-bold mb-2">Select Boss</h3>
+    <div id="modal-boss-list" class="space-y-1 max-h-60 overflow-y-auto"></div>
+    <div class="mt-3 flex justify-end gap-2">
+      <button id="save-boss-btn" class="bg-green-500 text-white px-3 py-1 rounded">Save</button>
+      <button id="close-boss-btn" class="bg-gray-300 px-3 py-1 rounded">Close</button>
     </div>
+  </div>
+</div>
 
-    <script type="module" src="firebase-init.js"></script>
-    <script type="module" src="admin.js"></script>
+<div id="participant-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+  <div class="bg-white p-4 rounded-lg w-80">
+    <h3 class="font-bold mb-2">Select Participants</h3>
+    <div id="modal-member-list" class="space-y-1 max-h-60 overflow-y-auto"></div>
+    <div class="mt-3 flex justify-end gap-2">
+      <button id="save-participants-btn" class="bg-green-500 text-white px-3 py-1 rounded">Save</button>
+      <button id="close-participants-btn" class="bg-gray-300 px-3 py-1 rounded">Close</button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="./admin.js"></script>
 </body>
 </html>
