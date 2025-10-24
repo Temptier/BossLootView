@@ -1,100 +1,98 @@
-// view.js
-import {
-    getFirestore, collection, query, orderBy, onSnapshot
-} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
-
-const db = getFirestore();
+import { firebaseDB } from './firebase-init.js';
+import { collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
 const lootListEl = document.getElementById('loot-list');
-const totalActiveLootEl = document.getElementById('total-active-loot');
-const activeShareEl = document.getElementById('active-share-per-member');
+const lootCollection = collection(firebaseDB, 'lootEntries');
 
-// Render entries
-function renderEntries(entries) {
+const filterBossInput = document.getElementById('filter-boss');
+const filterMemberInput = document.getElementById('filter-member');
+const clearFiltersBtn = document.getElementById('clear-filters');
+
+let allLootEntries = [];
+
+// Render loot entries function with filtering
+function renderLootEntries() {
+    const bossFilter = filterBossInput.value.toLowerCase();
+    const memberFilter = filterMemberInput.value.toLowerCase();
+
     lootListEl.innerHTML = '';
-    let totalActive = 0;
-    const membersSet = new Set();
 
-    entries.forEach(entry => {
+    allLootEntries.forEach(entry => {
+        // Apply filters
+        if (bossFilter && !entry.boss.toLowerCase().includes(bossFilter)) return;
+        if (memberFilter && !entry.members.some(m => m.toLowerCase().includes(memberFilter))) return;
+
         const entryDiv = document.createElement('div');
-        entryDiv.className = `loot-item ${entry.settled ? 'settled' : 'active'}`;
-        entryDiv.style.margin = '5px 0';
-        entryDiv.style.padding = '5px';
+        entryDiv.className = 'p-3 border rounded-md bg-gray-50';
+        entryDiv.style.borderColor = '#4f46e5';
 
-        // Collapsed header
-        const collapsedDiv = document.createElement('div');
-        collapsedDiv.className = 'collapsed-header';
-        const totalPrice = entry.loot.reduce((a,b)=>a+b.price,0);
-        const share = entry.members.length ? (totalPrice / entry.members.length).toFixed(2) : '0';
-        collapsedDiv.innerHTML = `
-            <div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>
-            <div><strong>Status:</strong> ${entry.settled ? 'Settled' : 'Active'}</div>
-        `;
+        // Collapsed Header
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'flex justify-between items-center cursor-pointer';
+        headerDiv.innerHTML = `<div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>
+                               <div><strong>Status:</strong> ${entry.settled ? 'Settled' : 'Active'}</div>`;
+        entryDiv.appendChild(headerDiv);
 
-        // Expanded content
+        // Expanded Content
         const expandedDiv = document.createElement('div');
         expandedDiv.style.display = 'none';
-        expandedDiv.style.marginTop = '5px';
+        expandedDiv.className = 'mt-2 pl-2';
 
         // Members
         const membersDiv = document.createElement('div');
-        membersDiv.innerHTML = `<strong>Members:</strong> ${entry.members.join(', ')}`;
+        membersDiv.innerHTML=`<strong>Participants:</strong> ${entry.members.join(', ')}`;
+        membersDiv.className = 'mb-2';
         expandedDiv.appendChild(membersDiv);
 
-        // Loot items
+        // Loot list
         const lootContainer = document.createElement('div');
-        lootContainer.className = 'loot-list-container';
+        lootContainer.className = 'space-y-1';
         entry.loot.forEach(item => {
             const lootRow = document.createElement('div');
-            lootRow.className = 'loot-row';
-            lootRow.style.display = 'flex';
-            lootRow.style.justifyContent = 'space-between';
-            lootRow.style.padding = '2px 0';
+            lootRow.className = 'flex justify-between';
             lootRow.innerHTML = `<span>${item.name}</span><span>${item.price}</span>`;
-            if (entry.settled) {
-                lootRow.style.color = '#6b7280';
-                lootRow.style.textDecoration = 'line-through';
+            if(entry.settled){
+                lootRow.style.textDecoration='line-through';
+                lootRow.style.color='#6b7280';
             }
             lootContainer.appendChild(lootRow);
         });
         expandedDiv.appendChild(lootContainer);
 
-        // Toggle button
-        const toggleBtn = document.createElement('button');
-        toggleBtn.textContent = 'Show Details';
-        toggleBtn.style.marginTop = '5px';
-        toggleBtn.onclick = () => {
-            if (expandedDiv.style.display === 'none') {
-                expandedDiv.style.display = 'block';
-                toggleBtn.textContent = 'Hide Details';
-            } else {
-                expandedDiv.style.display = 'none';
-                toggleBtn.textContent = 'Show Details';
-            }
-        };
+        // Total Price and per member share
+        const totalPrice = entry.loot.reduce((sum,i)=>sum+i.price,0);
+        const perMember = entry.members.length > 0 ? (totalPrice / entry.members.length).toFixed(2) : 0;
 
-        entryDiv.appendChild(collapsedDiv);
-        entryDiv.appendChild(toggleBtn);
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className='mt-2';
+        summaryDiv.innerHTML = `<strong>Total Price:</strong> ${totalPrice} | <strong>Each Member Share:</strong> ${perMember}`;
+        expandedDiv.appendChild(summaryDiv);
+
         entryDiv.appendChild(expandedDiv);
+
+        // Toggle details on click
+        headerDiv.addEventListener('click', () => {
+            expandedDiv.style.display = expandedDiv.style.display === 'none' ? 'block' : 'none';
+        });
+
         lootListEl.appendChild(entryDiv);
-
-        // Add active loot to totals
-        if (!entry.settled) {
-            totalActive += totalPrice;
-            entry.members.forEach(m => membersSet.add(m));
-        }
     });
-
-    totalActiveLootEl.textContent = totalActive;
-    activeShareEl.textContent = membersSet.size ? (totalActive / membersSet.size).toFixed(2) : '0';
 }
 
-// Firestore query: lootEntries collection, ordered by createdAt descending
-const lootQuery = query(collection(db, 'lootEntries'), orderBy('createdAt', 'desc'));
-
-// Listen for real-time updates
+// Listen for loot entries from Firebase
+const lootQuery = query(lootCollection, orderBy('date', 'desc'));
 onSnapshot(lootQuery, snapshot => {
-    const entries = [];
-    snapshot.forEach(docSnap => entries.push({ id: docSnap.id, ...docSnap.data() }));
-    renderEntries(entries);
+    allLootEntries = snapshot.docs.map(docSnap => docSnap.data());
+    renderLootEntries();
+});
+
+// Filter inputs
+filterBossInput.addEventListener('input', renderLootEntries);
+filterMemberInput.addEventListener('input', renderLootEntries);
+
+// Clear filters
+clearFiltersBtn.addEventListener('click', () => {
+    filterBossInput.value='';
+    filterMemberInput.value='';
+    renderLootEntries();
 });
