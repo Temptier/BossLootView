@@ -3,35 +3,33 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guild Boss Loot - Viewer</title>
-<link rel="stylesheet" href="style.css">
+<title>Guild Boss Loot - View</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="icon" href="/static/favicon.ico" type="image/x-icon">
 </head>
-<body>
+<body class="bg-gray-50 p-4">
 
-<!-- ===== Header ===== -->
-<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px;">
-    <h1>Guild Boss Loot</h1>
-    <button onclick="window.location.href='admin.html'" style="padding:5px 10px; background-color:#4f46e5;color:#fff;border:none;border-radius:5px;">Admin</button>
-</div>
+<div class="max-w-4xl mx-auto">
 
-<!-- ===== Recorded Loot Entries Panel ===== -->
-<div class="panel">
-    <h2>Recorded Loot Entries</h2>
-    <div class="panels-container">
-        <div class="panel" style="flex:1; min-width:300px;">
-            <div id="loot-list"></div>
-        </div>
+  <h1 class="text-3xl font-bold text-center mb-6">Guild Boss Loot</h1>
+
+  <!-- Filter Panel -->
+  <div class="bg-white p-4 mb-4 rounded-lg shadow border border-indigo-500 flex flex-col md:flex-row gap-2">
+    <input id="filter-boss" type="text" placeholder="Filter by Boss" class="border p-2 rounded flex-1">
+    <input id="filter-member" type="text" placeholder="Filter by Participant" class="border p-2 rounded flex-1">
+    <button id="clear-filters" class="bg-indigo-500 text-white px-4 py-2 rounded">Clear</button>
+  </div>
+
+  <!-- Recorded Loot Entries Panel -->
+  <div class="bg-white shadow rounded-lg p-4 border border-indigo-500">
+    <h2 class="text-xl font-semibold mb-3">Recorded Loot Entries</h2>
+    <div id="loot-list" class="space-y-3">
+      <!-- Loot entries will be rendered here -->
     </div>
+  </div>
+
 </div>
 
-<!-- ===== Total Summary ===== -->
-<div class="panel summary-panel">
-    <h3>Active Loot Summary</h3>
-    <div><strong>Total Active Loot:</strong> <span id="total-active-loot">0</span></div>
-    <div><strong>Active Share Per Member:</strong> <span id="active-share-per-member">0</span></div>
-</div>
-
-<script type="module" src="firebase-init.js"></script>
-<script type="module" src="view.js"></script>
+<script type="module" src="./view.js"></script>
 </body>
 </html>
