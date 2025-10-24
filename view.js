@@ -10,7 +10,7 @@ const clearFiltersBtn = document.getElementById('clear-filters');
 
 let allLootEntries = [];
 
-// Render loot entries with filters and per-item settled calculation
+// Render loot entries function with filtering
 function renderLootEntries() {
     const bossFilter = filterBossInput.value.toLowerCase();
     const memberFilter = filterMemberInput.value.toLowerCase();
@@ -26,63 +26,51 @@ function renderLootEntries() {
         entryDiv.className = 'p-3 border rounded-md bg-gray-50';
         entryDiv.style.borderColor = '#4f46e5';
 
-        // Header
+        // Collapsed Header
         const headerDiv = document.createElement('div');
         headerDiv.className = 'flex justify-between items-center cursor-pointer';
-        headerDiv.innerHTML = `<div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>`;
+        headerDiv.innerHTML = `<div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>
+                               <div><strong>Status:</strong> ${entry.settled ? 'Settled' : 'Active'}</div>`;
         entryDiv.appendChild(headerDiv);
 
-        // Expanded content
+        // Expanded Content
         const expandedDiv = document.createElement('div');
         expandedDiv.style.display = 'none';
         expandedDiv.className = 'mt-2 pl-2';
 
-        // Participants
+        // Members
         const membersDiv = document.createElement('div');
-        membersDiv.innerHTML = `<strong>Participants:</strong> ${entry.members.join(', ')}`;
+        membersDiv.innerHTML=`<strong>Participants:</strong> ${entry.members.join(', ')}`;
         membersDiv.className = 'mb-2';
         expandedDiv.appendChild(membersDiv);
 
-        // Loot items
+        // Loot list
         const lootContainer = document.createElement('div');
         lootContainer.className = 'space-y-1';
         entry.loot.forEach(item => {
             const lootRow = document.createElement('div');
-            lootRow.className = 'flex justify-between items-center';
-
-            const lootNameSpan = document.createElement('span');
-            lootNameSpan.textContent = item.name;
-            if(item.settled){
-                lootNameSpan.style.textDecoration='line-through';
-                lootNameSpan.style.color='#6b7280';
+            lootRow.className = 'flex justify-between';
+            lootRow.innerHTML = `<span>${item.name}</span><span>${item.price}</span>`;
+            if(entry.settled){
+                lootRow.style.textDecoration='line-through';
+                lootRow.style.color='#6b7280';
             }
-            lootRow.appendChild(lootNameSpan);
-
-            const lootPriceSpan = document.createElement('span');
-            lootPriceSpan.textContent = item.price;
-            if(item.settled){
-                lootPriceSpan.style.textDecoration='line-through';
-                lootPriceSpan.style.color='#6b7280';
-            }
-            lootRow.appendChild(lootPriceSpan);
-
             lootContainer.appendChild(lootRow);
         });
         expandedDiv.appendChild(lootContainer);
 
-        // Total price & per-member share only for unsettled items
-        const activeLoot = entry.loot.filter(i=>!i.settled);
-        const totalPrice = activeLoot.reduce((sum,i)=>sum+i.price,0);
-        const perMember = entry.members.length>0 ? (totalPrice / entry.members.length).toFixed(2) : 0;
+        // Total Price and per member share
+        const totalPrice = entry.loot.reduce((sum,i)=>sum+i.price,0);
+        const perMember = entry.members.length > 0 ? (totalPrice / entry.members.length).toFixed(2) : 0;
 
         const summaryDiv = document.createElement('div');
         summaryDiv.className='mt-2';
-        summaryDiv.innerHTML = `<strong>Total Price (active):</strong> ${totalPrice} | <strong>Each Member Share:</strong> ${perMember}`;
+        summaryDiv.innerHTML = `<strong>Total Price:</strong> ${totalPrice} | <strong>Each Member Share:</strong> ${perMember}`;
         expandedDiv.appendChild(summaryDiv);
 
         entryDiv.appendChild(expandedDiv);
 
-        // Toggle details
+        // Toggle details on click
         headerDiv.addEventListener('click', () => {
             expandedDiv.style.display = expandedDiv.style.display === 'none' ? 'block' : 'none';
         });
@@ -91,14 +79,14 @@ function renderLootEntries() {
     });
 }
 
-// Listen to Firestore
-const lootQuery = query(lootCollection, orderBy('date','desc'));
+// Listen for loot entries from Firebase
+const lootQuery = query(lootCollection, orderBy('date', 'desc'));
 onSnapshot(lootQuery, snapshot => {
     allLootEntries = snapshot.docs.map(docSnap => docSnap.data());
     renderLootEntries();
 });
 
-// Filters
+// Filter inputs
 filterBossInput.addEventListener('input', renderLootEntries);
 filterMemberInput.addEventListener('input', renderLootEntries);
 
