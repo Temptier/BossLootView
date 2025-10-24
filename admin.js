@@ -1,54 +1,65 @@
 // admin.js
 import { firebaseDB } from './firebase-init.js';
-import { collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot, getDocs } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
 // ===== DOM Elements =====
-const lootListEl = document.getElementById('loot-list');
 const addBossBtn = document.getElementById('add-boss-btn');
 const addMemberBtn = document.getElementById('add-member-btn');
 const newBossInput = document.getElementById('new-boss-name');
 const newMemberInput = document.getElementById('new-member-name');
+const selectBossBtn = document.getElementById('select-boss-btn');
+const editParticipantsBtn = document.getElementById('edit-participants-btn');
+const modalBossList = document.getElementById('modal-boss-list');
+const modalMemberList = document.getElementById('modal-member-list');
+const saveBossBtn = document.getElementById('save-boss-btn');
+const closeBossBtn = document.getElementById('close-boss-btn');
+const saveParticipantsBtn = document.getElementById('save-participants-btn');
+const closeParticipantsBtn = document.getElementById('close-participants-btn');
+const selectedBossSpan = document.getElementById('selected-boss');
+const selectedParticipantsEl = document.getElementById('selected-participants');
 const lootNameInput = document.getElementById('loot-name-input');
 const lootPriceInput = document.getElementById('loot-price-input');
 const addLootBtn = document.getElementById('add-loot-btn');
+const lootItemsContainer = document.getElementById('loot-items-container');
 const addNewLootEntryBtn = document.getElementById('add-new-loot-entry-btn');
-const selectedBossSpan = document.getElementById('selected-boss');
-const selectedParticipantsEl = document.getElementById('selected-participants');
+const lootListEl = document.getElementById('loot-list');
 
-const bossModal = document.getElementById('boss-modal');
-const modalBossList = document.getElementById('modal-boss-list');
-const saveBossBtn = document.getElementById('save-boss-btn');
-const closeBossBtn = document.getElementById('close-boss-btn');
-const selectBossBtn = document.getElementById('select-boss-btn');
-
-const participantModal = document.getElementById('participant-modal');
-const modalMemberList = document.getElementById('modal-member-list');
-const editParticipantsBtn = document.getElementById('edit-participants-btn');
-const saveParticipantsBtn = document.getElementById('save-participants-btn');
-const closeParticipantsBtn = document.getElementById('close-participants-btn');
-
-// ===== Local State =====
+// ===== State =====
 let bosses = [];
 let members = [];
 let selectedBoss = null;
 let selectedParticipants = [];
 let lootItems = [];
 
-// ===== Firestore Collection =====
+// ===== Firestore Collections =====
+const bossesCol = collection(firebaseDB, 'bosses');
+const membersCol = collection(firebaseDB, 'members');
 const lootCollection = collection(firebaseDB, 'lootEntries');
 
+// ===== Load Bosses and Members from Firebase =====
+async function loadBossesAndMembers() {
+    const bossDocs = await getDocs(bossesCol);
+    bosses = bossDocs.docs.map(doc => doc.data().name);
+
+    const memberDocs = await getDocs(membersCol);
+    members = memberDocs.docs.map(doc => doc.data().name);
+}
+loadBossesAndMembers();
+
 // ===== Add Boss =====
-addBossBtn.addEventListener('click', () => {
+addBossBtn.addEventListener('click', async () => {
     const name = newBossInput.value.trim();
     if(!name) return alert('Enter boss name');
+    await addDoc(bossesCol, {name});
     bosses.push(name);
     newBossInput.value='';
 });
 
 // ===== Add Member =====
-addMemberBtn.addEventListener('click', () => {
+addMemberBtn.addEventListener('click', async () => {
     const name = newMemberInput.value.trim();
     if(!name) return alert('Enter member name');
+    await addDoc(membersCol, {name});
     members.push(name);
     newMemberInput.value='';
 });
@@ -66,8 +77,7 @@ addLootBtn.addEventListener('click', () => {
 
 // ===== Render Loot Items Preview =====
 function renderLootItems() {
-    const container = document.getElementById('loot-items-container');
-    container.innerHTML='';
+    lootItemsContainer.innerHTML='';
     if(lootItems.length===0) return;
 
     const ul = document.createElement('ul');
@@ -97,91 +107,109 @@ function renderLootItems() {
         ul.appendChild(li);
     });
 
-    container.appendChild(ul);
+    lootItemsContainer.appendChild(ul);
 }
 
 // ===== Select Boss Modal =====
-selectBossBtn.addEventListener('click',()=>{
+selectBossBtn.addEventListener('click', () => {
     modalBossList.innerHTML='';
     bosses.forEach(boss=>{
-        const div=document.createElement('div');
-        const radio=document.createElement('input');
+        const div = document.createElement('div');
+        const radio = document.createElement('input');
         radio.type='radio';
         radio.name='boss';
         radio.value=boss;
         if(selectedBoss===boss) radio.checked=true;
         div.appendChild(radio);
-        div.appendChild(document.createTextNode(' '+boss));
+        div.appendChild(document.createTextNode(' ' + boss));
         modalBossList.appendChild(div);
     });
-    bossModal.style.display='flex';
+    document.getElementById('boss-modal').style.display='flex';
 });
 
-saveBossBtn.addEventListener('click',()=>{
+saveBossBtn.addEventListener('click', () => {
     const selected = modalBossList.querySelector('input[name="boss"]:checked');
     if(selected){
         selectedBoss = selected.value;
         selectedBossSpan.textContent = selectedBoss;
     }
-    bossModal.style.display='none';
+    document.getElementById('boss-modal').style.display='none';
 });
 
-closeBossBtn.addEventListener('click',()=>{bossModal.style.display='none';});
+closeBossBtn.addEventListener('click', ()=>{document.getElementById('boss-modal').style.display='none';});
 
 // ===== Participants Modal =====
-editParticipantsBtn.addEventListener('click',()=>{
+editParticipantsBtn.addEventListener('click', () => {
     modalMemberList.innerHTML='';
     members.forEach(member=>{
-        const div=document.createElement('div');
-        const checkbox=document.createElement('input');
+        const div = document.createElement('div');
+        const checkbox = document.createElement('input');
         checkbox.type='checkbox';
-        checkbox.value=member;
+        checkbox.value = member;
         if(selectedParticipants.includes(member)) checkbox.checked=true;
         div.appendChild(checkbox);
         div.appendChild(document.createTextNode(' '+member));
         modalMemberList.appendChild(div);
     });
-    participantModal.style.display='flex';
+    document.getElementById('participant-modal').style.display='flex';
 });
 
-saveParticipantsBtn.addEventListener('click',()=>{
-    selectedParticipants=[];
+saveParticipantsBtn.addEventListener('click', () => {
+    selectedParticipants = [];
     const checked = modalMemberList.querySelectorAll('input[type="checkbox"]:checked');
     checked.forEach(c=>selectedParticipants.push(c.value));
-    renderSelectedParticipants();
-    participantModal.style.display='none';
-});
-
-closeParticipantsBtn.addEventListener('click',()=>{participantModal.style.display='none';});
-
-// ===== Render Selected Participants =====
-function renderSelectedParticipants(){
     selectedParticipantsEl.innerHTML='';
     selectedParticipants.forEach(p=>{
-        const li=document.createElement('li');
-        li.textContent=p;
+        const li = document.createElement('li');
+        li.textContent = p;
         selectedParticipantsEl.appendChild(li);
     });
-}
+    document.getElementById('participant-modal').style.display='none';
+});
+
+closeParticipantsBtn.addEventListener('click', ()=>{document.getElementById('participant-modal').style.display='none';});
 
 // ===== Add New Loot Entry =====
-addNewLootEntryBtn.addEventListener('click',async()=>{
-    if(!selectedBoss) return alert('Select a boss');
-    if(selectedParticipants.length===0) return alert('Select participants');
-    if(lootItems.length===0) return alert('Add at least one loot item');
+addNewLootEntryBtn.addEventListener('click', async () => {
+    if (!selectedBoss) return alert('Select a boss');
+    if (selectedParticipants.length === 0) return alert('Select participants');
+    if (lootItems.length === 0) return alert('Add at least one loot item');
 
-    const date = new Date().toLocaleString('en-US', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
-    await addDoc(lootCollection,{
+    // Validate existence
+    if (!bosses.includes(selectedBoss)) return alert('Selected boss does not exist');
+    const invalidMembers = selectedParticipants.filter(p => !members.includes(p));
+    if (invalidMembers.length > 0) return alert(`Invalid participants: ${invalidMembers.join(', ')}`);
+
+    const date = new Date().toLocaleString('en-US', {
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+
+    const lootEntry = {
         boss: selectedBoss,
         date: date,
         members: selectedParticipants,
         loot: lootItems,
-        settled:false
-    });
+        settled: false
+    };
 
-    // Clear temporary inputs
-    lootItems=[];
-    renderLootItems();
+    try {
+        await addDoc(lootCollection, lootEntry);
+
+        // Clear temp selections
+        lootItems=[];
+        renderLootItems();
+        selectedBoss=null;
+        selectedBossSpan.textContent='None';
+        selectedParticipants=[];
+        selectedParticipantsEl.innerHTML='';
+        alert('Loot entry added successfully!');
+    } catch (err) {
+        console.error(err);
+        alert('Failed to add loot entry');
+    }
 });
 
 // ===== Render Recorded Loot Entries =====
@@ -191,7 +219,6 @@ onSnapshot(lootQuery, snapshot=>{
     snapshot.forEach(docSnap=>{
         const entry = {id: docSnap.id, ...docSnap.data()};
         const entryDiv = document.createElement('div');
-        entryDiv.className = `loot-item ${entry.settled?'settled':'active'}`;
         entryDiv.style.padding='10px';
         entryDiv.style.border='1px solid #4f46e5';
         entryDiv.style.borderRadius='8px';
@@ -199,7 +226,6 @@ onSnapshot(lootQuery, snapshot=>{
 
         // Collapsed Header
         const collapsedDiv = document.createElement('div');
-        collapsedDiv.className='collapsed-header';
         collapsedDiv.style.display='flex';
         collapsedDiv.style.justifyContent='space-between';
         collapsedDiv.style.alignItems='center';
@@ -217,7 +243,6 @@ onSnapshot(lootQuery, snapshot=>{
         expandedDiv.appendChild(membersDiv);
 
         const lootContainer = document.createElement('div');
-        lootContainer.className='loot-list-container';
         entry.loot.forEach((item,idx)=>{
             const lootRow=document.createElement('div');
             lootRow.style.display='flex';
@@ -230,17 +255,17 @@ onSnapshot(lootQuery, snapshot=>{
                 lootRow.style.color='#6b7280';
                 lootRow.style.textDecoration='line-through';
             } else {
-                const nameSpan=document.createElement('span');
-                nameSpan.textContent=item.name;
+                const nameSpan = document.createElement('span');
+                nameSpan.textContent = item.name;
 
-                const priceInput=document.createElement('input');
-                priceInput.type='number';
-                priceInput.value=item.price;
-                priceInput.style.width='60px';
-                priceInput.addEventListener('change', async()=>{
-                    const newPrice=parseFloat(priceInput.value)||0;
-                    const updatedLoot=entry.loot.map((l,i)=>i===idx?{...l,price:newPrice}:l);
-                    await updateDoc(doc(firebaseDB,'lootEntries',entry.id),{loot:updatedLoot});
+                const priceInput = document.createElement('input');
+                priceInput.type = 'number';
+                priceInput.value = item.price;
+                priceInput.style.width = '60px';
+                priceInput.addEventListener('change', async () => {
+                    const newPrice = parseFloat(priceInput.value) || 0;
+                    const updatedLoot = entry.loot.map((l,i) => i===idx ? {...l, price:newPrice} : l);
+                    await updateDoc(doc(firebaseDB,'lootEntries',entry.id), {loot: updatedLoot});
                 });
 
                 lootRow.appendChild(nameSpan);
@@ -250,12 +275,12 @@ onSnapshot(lootQuery, snapshot=>{
         });
         expandedDiv.appendChild(lootContainer);
 
-        // Toggle button
-        const toggleBtn=document.createElement('button');
-        toggleBtn.textContent='Show Details';
+        // Toggle details button
+        const toggleBtn = document.createElement('button');
+        toggleBtn.textContent = 'Show Details';
         toggleBtn.style.marginTop='5px';
-        toggleBtn.onclick=()=> {
-            if(expandedDiv.style.display==='none'){
+        toggleBtn.onclick = () => {
+            if(expandedDiv.style.display === 'none'){
                 expandedDiv.style.display='block';
                 toggleBtn.textContent='Hide Details';
             } else {
@@ -265,31 +290,33 @@ onSnapshot(lootQuery, snapshot=>{
         };
 
         // Action buttons
-        const actionDiv=document.createElement('div');
+        const actionDiv = document.createElement('div');
         actionDiv.style.marginTop='5px';
 
         if(!entry.settled){
-            const settleBtn=document.createElement('button');
+            const settleBtn = document.createElement('button');
             settleBtn.textContent='Settle';
             settleBtn.style.backgroundColor='#10b981';
             settleBtn.style.color='#fff';
             settleBtn.style.marginRight='5px';
-            settleBtn.onclick=async()=>{await updateDoc(doc(firebaseDB,'lootEntries',entry.id),{settled:true});};
+            settleBtn.onclick = async () => {
+                await updateDoc(doc(firebaseDB,'lootEntries',entry.id), {settled:true});
+            };
             actionDiv.appendChild(settleBtn);
         }
 
-        const removeBtn=document.createElement('button');
+        const removeBtn = document.createElement('button');
         removeBtn.textContent='Remove';
         removeBtn.style.backgroundColor='#ef4444';
         removeBtn.style.color='#fff';
-        removeBtn.onclick=async()=>{
+        removeBtn.onclick = async () => {
             if(confirm('Remove this loot entry?')){
                 await deleteDoc(doc(firebaseDB,'lootEntries',entry.id));
             }
         };
         actionDiv.appendChild(removeBtn);
 
-        // Append all
+        // Append everything
         entryDiv.appendChild(collapsedDiv);
         entryDiv.appendChild(toggleBtn);
         entryDiv.appendChild(expandedDiv);
