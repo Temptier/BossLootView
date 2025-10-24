@@ -1,261 +1,262 @@
+// admin.js
+import {
+    collection, addDoc, getDocs, query, onSnapshot, orderBy, updateDoc, doc
+} from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+
 // Elements
-const selectedBossList = document.getElementById('selected-boss');
-const participantList = document.getElementById('participant-list');
-const lootList = document.getElementById('loot-list');
-const tempLootItemsDiv = document.getElementById('temp-loot-items');
-const totalActiveLootEl = document.getElementById('total-active-loot');
-const activeShareEl = document.getElementById('active-share-per-member');
+const bossListEl = document.getElementById('boss-list');
+const memberListEl = document.getElementById('member-list');
+const selectedBossEl = document.getElementById('selected-boss');
+const selectedParticipantsEl = document.getElementById('selected-participants');
+const lootNameInput = document.getElementById('loot-name-input');
+const lootPriceInput = document.getElementById('loot-price-input');
+const lootListEl = document.getElementById('loot-list');
 
-const modalBoss = document.getElementById('modal-boss');
-const modalMember = document.getElementById('modal-member');
+const participantModal = document.getElementById('participant-modal');
+const modalMemberList = document.getElementById('modal-member-list');
+const saveParticipantsBtn = document.getElementById('save-participants-btn');
+const closeParticipantsBtn = document.getElementById('close-participants-btn');
 
-const allBossesList = document.getElementById('all-bosses-list');
-const allMembersList = document.getElementById('all-members-list');
+const newBossInput = document.getElementById('new-boss-name');
+const addBossBtn = document.getElementById('add-boss-btn');
+const newMemberInput = document.getElementById('new-member-name');
+const addMemberBtn = document.getElementById('add-member-btn');
+const addLootBtn = document.getElementById('add-loot-btn');
+const addNewLootEntryBtn = document.getElementById('add-new-loot-entry-btn');
 
-const allMembers = ['Member A','Member B','Member C','Member D'];
-let currentBoss = '';
-let currentParticipants = [];
-let tempLootItems = [];
+// State
+let bosses = [];
+let members = [];
+let selectedBoss = null;
+let selectedParticipants = [];
+let lootItems = [];
 
-// --- Populate boss/member dropdowns on page load ---
-function populateDropdowns() {
-    modalBoss.innerHTML = '';
-    ['1st Boss','2nd Boss','3rd Boss','4th Boss'].forEach(b=>{
-        const opt = document.createElement('option');
-        opt.value = b;
-        opt.textContent = b;
-        modalBoss.appendChild(opt);
-    });
+// Firestore collections
+const bossesCol = collection(window.firebaseDB, 'bosses');
+const membersCol = collection(window.firebaseDB, 'members');
+const lootEntriesCol = collection(window.firebaseDB, 'lootEntries');
 
-    modalMember.innerHTML = '';
-    allMembers.forEach(m=>{
-        const opt = document.createElement('option');
-        opt.value = m;
-        opt.textContent = m;
-        modalMember.appendChild(opt);
-    });
-
-    updateAllLists();
+// ===== Load Bosses and Members =====
+async function loadBosses() {
+    const snapshot = await getDocs(bossesCol);
+    bosses = snapshot.docs.map(d => ({ id: d.id, name: d.data().name }));
+    renderBosses();
 }
-populateDropdowns();
 
-// --- Confirm Selection (inline) ---
-function confirmSelection() {
-    const boss = modalBoss.value;
-    const participants = Array.from(modalMember.selectedOptions).map(o=>o.value);
-    if(!boss || participants.length===0) return alert("Select boss and participants.");
+async function loadMembers() {
+    const snapshot = await getDocs(membersCol);
+    members = snapshot.docs.map(d => ({ id: d.id, name: d.data().name }));
+    renderMembers();
+}
 
-    currentBoss = boss;
-    currentParticipants = participants;
-
-    selectedBossList.innerHTML = '';
-    selectedBossList.textContent = boss;
-
-    participantList.innerHTML = '';
-    participants.forEach(p=>{
+// ===== Render Lists =====
+function renderBosses() {
+    bossListEl.innerHTML = '';
+    bosses.forEach(b => {
         const li = document.createElement('li');
-        li.textContent = p;
-        participantList.appendChild(li);
+        li.textContent = b.name;
+        li.style.cursor = 'pointer';
+        li.onclick = () => {
+            selectedBoss = b;
+            selectedBossEl.textContent = b.name;
+        };
+        bossListEl.appendChild(li);
     });
 }
 
-// --- Temporary Loot ---
-function addLootItem() {
-    const name = document.getElementById('loot-name').value.trim();
-    const price = parseFloat(document.getElementById('loot-price').value);
-    if(!name || isNaN(price)) return alert("Enter loot name and price.");
-
-    tempLootItems.push({name, price});
-    renderTempLoot();
-
-    document.getElementById('loot-name').value = '';
-    document.getElementById('loot-price').value = '';
-}
-
-function renderTempLoot() {
-    tempLootItemsDiv.innerHTML = '';
-    tempLootItems.forEach((item,i)=>{
-        const div = document.createElement('div');
-        div.textContent = `${item.name} : ${item.price}`;
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent = 'Remove';
-        removeBtn.onclick = ()=>{ tempLootItems.splice(i,1); renderTempLoot(); }
-        div.appendChild(removeBtn);
-        tempLootItemsDiv.appendChild(div);
+function renderMembers() {
+    memberListEl.innerHTML = '';
+    members.forEach(m => {
+        const li = document.createElement('li');
+        li.textContent = m.name;
+        memberListEl.appendChild(li);
     });
 }
 
-// --- Add New Loot Entry ---
-function addNewLootEntry() {
-    if(!currentBoss) return alert("Select boss first.");
-    if(tempLootItems.length === 0) return alert("Add at least one loot item.");
+// ===== Add Boss / Member =====
+addBossBtn.addEventListener('click', async () => {
+    const name = newBossInput.value.trim();
+    if (!name) return;
+    const docRef = await addDoc(bossesCol, { name });
+    bosses.push({ id: docRef.id, name });
+    renderBosses();
+    newBossInput.value = '';
+});
 
-    const entryDiv = document.createElement('div');
-    entryDiv.className = 'loot-item';
-    const dateStr = new Date().toLocaleString('en-US',{month:'short', day:'numeric', hour:'2-digit', minute:'2-digit', hour12:true});
-    const memberInputStr = currentParticipants.join(', ');
+addMemberBtn.addEventListener('click', async () => {
+    const name = newMemberInput.value.trim();
+    if (!name) return;
+    const docRef = await addDoc(membersCol, { name });
+    members.push({ id: docRef.id, name });
+    renderMembers();
+    newMemberInput.value = '';
+});
 
-    entryDiv.innerHTML = `
-        <div><span>Boss :</span> ${currentBoss}</div>
-        <div><span>Date :</span> ${dateStr}</div>
-        <div><span>Members :</span> <input type="text" value="${memberInputStr}" class="member-input"></div>
-        <div class="loot-list-container"></div>
-        <div><span>Total Price :</span> <span class="total-price">0</span></div>
-        <div><span>Each Member Share :</span> <span class="share">0</span></div>
-        <div class="loot-buttons">
-            <button onclick="removeEntry(this)">Remove Entry</button>
-        </div>
-    `;
+// ===== Add Loot Item =====
+addLootBtn.addEventListener('click', () => {
+    const name = lootNameInput.value.trim();
+    const price = parseFloat(lootPriceInput.value);
+    if (!name || isNaN(price)) return;
+    lootItems.push({ name, price });
+    lootNameInput.value = '';
+    lootPriceInput.value = '';
+    renderLootItems();
+});
 
-    const lootContainer = entryDiv.querySelector('.loot-list-container');
+function renderLootItems() {
+    // Optionally show loot items in Boss Loot Panel (not implemented in HTML here)
+    console.log('Current loot items:', lootItems);
+}
 
-    tempLootItems.forEach((item)=>{
+// ===== Participants Modal =====
+document.getElementById('edit-participants-btn').addEventListener('click', () => {
+    modalMemberList.innerHTML = '';
+    members.forEach(m => {
         const div = document.createElement('div');
-        div.className = 'loot-row';
-        div.innerHTML = `
-            Loot: <span class="loot-name-input">${item.name}</span>
-            Price: <input type="number" value="${item.price}" class="loot-price-input">
-            <button class="settle-loot-btn">Settle</button>
-        `;
-        lootContainer.appendChild(div);
+        div.innerHTML = `<input type="checkbox" data-id="${m.id}" ${selectedParticipants.find(p=>p.id===m.id)?'checked':''}> ${m.name}`;
+        modalMemberList.appendChild(div);
+    });
+    participantModal.style.display = 'flex';
+});
 
-        const priceInput = div.querySelector('.loot-price-input');
-        const settleBtn = div.querySelector('.settle-loot-btn');
-
-        function updateEntryTotal() {
-            let prices = Array.from(entryDiv.querySelectorAll('.loot-price-input')).map(inp=>{
-                const rowDiv = inp.closest('.loot-row');
-                return rowDiv.classList.contains('settled') ? 0 : parseFloat(inp.value)||0;
-            });
-            const total = prices.reduce((a,b)=>a+b,0);
-            entryDiv.querySelector('.total-price').textContent = total;
-
-            let members = entryDiv.querySelector('.member-input').value.split(',').map(m=>m.trim()).filter(m=>m);
-            let share = members.length ? (total/members.length).toFixed(2) : '0';
-            entryDiv.querySelector('.share').textContent = share;
-
-            updateSummary();
-            saveEntries();
+saveParticipantsBtn.addEventListener('click', () => {
+    selectedParticipants = [];
+    modalMemberList.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+        if (cb.checked) {
+            const member = members.find(m => m.id === cb.dataset.id);
+            if (member) selectedParticipants.push(member);
         }
-
-        priceInput.addEventListener('input', updateEntryTotal);
-
-        settleBtn.addEventListener('click', ()=>{
-            div.classList.add('settled');
-            div.querySelector('.loot-price-input').disabled = true;
-            updateEntryTotal();
-        });
     });
+    renderSelectedParticipants();
+    participantModal.style.display = 'none';
+});
 
-    const memberInput = entryDiv.querySelector('.member-input');
-    memberInput.addEventListener('input', ()=>{
-        let total = Array.from(entryDiv.querySelectorAll('.loot-price-input')).reduce((sum, inp)=>{
-            const rowDiv = inp.closest('.loot-row');
-            return rowDiv.classList.contains('settled') ? sum : sum + (parseFloat(inp.value)||0);
-        }, 0);
-        let members = memberInput.value.split(',').map(m=>m.trim()).filter(m=>m);
-        entryDiv.querySelector('.total-price').textContent = total;
-        entryDiv.querySelector('.share').textContent = members.length ? (total/members.length).toFixed(2) : '0';
-        updateSummary();
-        saveEntries();
-    });
+closeParticipantsBtn.addEventListener('click', () => {
+    participantModal.style.display = 'none';
+});
 
-    lootList.appendChild(entryDiv);
-    tempLootItems = [];
-    renderTempLoot();
-    saveEntries();
-}
-
-// --- Remove Entry ---
-function removeEntry(btn) {
-    const entry = btn.closest('.loot-item');
-    entry.remove();
-    updateSummary();
-    saveEntries();
-}
-
-// --- Update Summary ---
-function updateSummary() {
-    const entries = document.querySelectorAll('.loot-item');
-    let totalActive = 0;
-    let membersSet = new Set();
-
-    entries.forEach(entry=>{
-        Array.from(entry.querySelectorAll('.loot-price-input')).forEach(inp=>{
-            const rowDiv = inp.closest('.loot-row');
-            if(!rowDiv.classList.contains('settled')){
-                totalActive += parseFloat(inp.value)||0;
-                entry.querySelector('.member-input').value.split(',').map(m=>m.trim()).filter(m=>m).forEach(m=>membersSet.add(m));
-            }
-        });
-    });
-
-    totalActiveLootEl.textContent = totalActive;
-    activeShareEl.textContent = (totalActive / (membersSet.size||1)).toFixed(2);
-}
-
-// --- Save entries to localStorage ---
-function saveEntries() {
-    const entries = [];
-    document.querySelectorAll('.loot-item').forEach(entryDiv => {
-        const boss = entryDiv.querySelector('div:nth-child(1)').textContent.replace('Boss : ','');
-        const date = entryDiv.querySelector('div:nth-child(2)').textContent.replace('Date : ','');
-        const members = entryDiv.querySelector('.member-input').value.split(',').map(m=>m.trim()).filter(m=>m);
-        const loot = Array.from(entryDiv.querySelectorAll('.loot-row')).map(l => ({
-            name: l.querySelector('.loot-name-input').textContent,
-            price: parseFloat(l.querySelector('.loot-price-input').value)||0
-        }));
-        entries.push({boss, date, members, loot});
-    });
-    localStorage.setItem('guildLootEntries', JSON.stringify(entries));
-}
-
-// --- Update All Boss & Member Lists ---
-function updateAllLists() {
-    // Bosses
-    allBossesList.innerHTML = '';
-    Array.from(modalBoss.options).forEach(opt=>{
+function renderSelectedParticipants() {
+    selectedParticipantsEl.innerHTML = '';
+    selectedParticipants.forEach(m => {
         const li = document.createElement('li');
-        li.textContent = opt.value;
-        allBossesList.appendChild(li);
-    });
-
-    // Members
-    allMembersList.innerHTML = '';
-    allMembers.forEach(m=>{
-        const li = document.createElement('li');
-        li.textContent = m;
-        allMembersList.appendChild(li);
+        li.textContent = m.name;
+        selectedParticipantsEl.appendChild(li);
     });
 }
 
-// --- Add New Boss dynamically ---
-function addNewBoss() {
-    const name = document.getElementById('new-boss-name').value.trim();
-    if(!name) return alert("Enter boss name.");
-    if(!Array.from(modalBoss.options).some(o => o.value === name)){
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        modalBoss.appendChild(opt);
-        modalBoss.value = name; // select immediately
-        document.getElementById('new-boss-name').value = '';
-        updateAllLists();
-    } else alert("Boss already exists.");
-}
+// ===== Add New Loot Entry =====
+addNewLootEntryBtn.addEventListener('click', async () => {
+    if (!selectedBoss) return alert('Select a boss');
+    if (selectedParticipants.length === 0) return alert('Select participants');
+    if (lootItems.length === 0) return alert('Add at least one loot item');
 
-// --- Add New Member dynamically ---
-function addNewMember() {
-    const name = document.getElementById('new-member-name').value.trim();
-    if(!name) return alert("Enter member name.");
-    if(!allMembers.includes(name)){
-        allMembers.push(name);
-        const opt = document.createElement('option');
-        opt.value = name;
-        opt.textContent = name;
-        modalMember.appendChild(opt);
-        opt.selected = true; // select immediately
-        document.getElementById('new-member-name').value = '';
-        updateAllLists();
-    } else alert("Member already exists.");
-}
+    const entryObj = {
+        boss: selectedBoss.name,
+        date: new Date().toLocaleString(),
+        members: selectedParticipants.map(m => m.name),
+        loot: lootItems.map(l => ({ name: l.name, price: l.price })),
+        settled: false,
+        createdAt: new Date()
+    };
+
+    try {
+        await addDoc(lootEntriesCol, entryObj);
+        // Clear panel
+        selectedBoss = null;
+        selectedBossEl.textContent = 'None';
+        selectedParticipants = [];
+        renderSelectedParticipants();
+        lootItems = [];
+        alert('Loot entry added!');
+    } catch (err) {
+        console.error(err);
+        alert('Failed to add entry: ' + err.message);
+    }
+});
+
+// ===== Load and Render Recorded Loot Entries (Live) =====
+const lootQuery = query(lootEntriesCol, orderBy('createdAt', 'desc'));
+onSnapshot(lootQuery, snapshot => {
+    lootListEl.innerHTML = '';
+    snapshot.forEach(docSnap => {
+        const entry = docSnap.data();
+        const entryDiv = document.createElement('div');
+        entryDiv.className = 'loot-item';
+        entryDiv.style.border = '1px solid #ccc';
+        entryDiv.style.margin = '5px 0';
+        entryDiv.style.padding = '5px';
+
+        // Boss and Date
+        entryDiv.innerHTML = `
+            <div><strong>Boss:</strong> ${entry.boss}</div>
+            <div><strong>Date:</strong> ${entry.date}</div>
+            <div><strong>Members:</strong> ${entry.members.join(', ')}</div>
+        `;
+
+        // Loot list
+        entryDiv.innerHTML += `<div class="loot-list-container"></div>`;
+        const lootContainer = entryDiv.querySelector('.loot-list-container');
+
+        entry.loot.forEach((item, idx) => {
+            const lootRow = document.createElement('div');
+            lootRow.style.display = 'flex';
+            lootRow.style.justifyContent = 'space-between';
+            lootRow.style.marginBottom = '2px';
+            lootRow.innerHTML = `
+                <span>${item.name}</span>
+                <input type="number" data-loot-idx="${idx}" value="${item.price}" style="width:60px;">
+            `;
+            lootContainer.appendChild(lootRow);
+
+            // Update Firestore when price changes
+            const priceInput = lootRow.querySelector('input');
+            priceInput.addEventListener('change', async () => {
+                const newPrice = parseFloat(priceInput.value) || 0;
+                const docRef = doc(window.firebaseDB, 'lootEntries', docSnap.id);
+                const updatedLoot = entry.loot.map((l, i) => i === idx ? {...l, price: newPrice} : l);
+                await updateDoc(docRef, { loot: updatedLoot });
+            });
+        });
+
+        // Total and Share
+        const totalPrice = entry.loot.reduce((a,b)=>a+b.price,0);
+        const share = entry.members.length ? (totalPrice / entry.members.length).toFixed(2) : '0';
+
+        entryDiv.innerHTML += `
+            <div><strong>Total Price:</strong> ${totalPrice}</div>
+            <div><strong>Each Member Share:</strong> ${share}</div>
+        `;
+
+        // Buttons
+        const btnContainer = document.createElement('div');
+        btnContainer.style.marginTop = '5px';
+        const settleBtn = document.createElement('button');
+        settleBtn.textContent = entry.settled ? 'Settled' : 'Settle';
+        settleBtn.disabled = entry.settled;
+        settleBtn.style.marginRight = '5px';
+        settleBtn.onclick = async () => {
+            const docRef = doc(window.firebaseDB, 'lootEntries', docSnap.id);
+            await updateDoc(docRef, { settled: true });
+        };
+
+        const removeBtn = document.createElement('button');
+        removeBtn.textContent = 'Remove Entry';
+        removeBtn.onclick = async () => {
+            const docRef = doc(window.firebaseDB, 'lootEntries', docSnap.id);
+            await docRef.delete?.(); // optional chaining in case delete is unsupported
+            try {
+                await updateDoc(docRef, {}); // fallback
+            } catch {}
+        };
+
+        btnContainer.appendChild(settleBtn);
+        btnContainer.appendChild(removeBtn);
+        entryDiv.appendChild(btnContainer);
+
+        lootListEl.appendChild(entryDiv);
+    });
+});
+
+// ===== Initialize =====
+loadBosses();
+loadMembers();
