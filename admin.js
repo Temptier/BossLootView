@@ -136,18 +136,25 @@ function renderLootItems(){
 }
 
 // ===== Select Boss Modal =====
-selectBossBtn.addEventListener('click', ()=>{
-    modalBossList.innerHTML='';
-    bosses.forEach(boss=>{
+selectBossBtn.addEventListener('click', () => {
+    modalBossList.innerHTML = '';
+
+    // ✅ Sort bosses alphabetically
+    const sortedBosses = [...bosses].sort((a, b) => a.localeCompare(b));
+
+    sortedBosses.forEach(boss => {
         const div = document.createElement('div');
         const radio = document.createElement('input');
-        radio.type='radio'; radio.name='boss'; radio.value=boss;
-        if(selectedBoss===boss) radio.checked=true;
+        radio.type = 'radio';
+        radio.name = 'boss';
+        radio.value = boss;
+        if (selectedBoss === boss) radio.checked = true;
         div.appendChild(radio);
-        div.appendChild(document.createTextNode(' '+boss));
+        div.appendChild(document.createTextNode(' ' + boss));
         modalBossList.appendChild(div);
     });
-    document.getElementById('boss-modal').style.display='flex';
+
+    document.getElementById('boss-modal').style.display = 'flex';
 });
 
 saveBossBtn.addEventListener('click', ()=>{
@@ -162,19 +169,24 @@ saveBossBtn.addEventListener('click', ()=>{
 closeBossBtn.addEventListener('click', ()=>{document.getElementById('boss-modal').style.display='none';});
 
 // ===== Participants Modal =====
-editParticipantsBtn.addEventListener('click', ()=>{
-    modalMemberList.innerHTML='';
-    members.forEach(member=>{
+editParticipantsBtn.addEventListener('click', () => {
+    modalMemberList.innerHTML = '';
+
+    // ✅ Sort members alphabetically
+    const sortedMembers = [...members].sort((a, b) => a.localeCompare(b));
+
+    sortedMembers.forEach(member => {
         const div = document.createElement('div');
         const checkbox = document.createElement('input');
-        checkbox.type='checkbox';
+        checkbox.type = 'checkbox';
         checkbox.value = member;
-        if(selectedParticipants.includes(member)) checkbox.checked=true;
+        if (selectedParticipants.includes(member)) checkbox.checked = true;
         div.appendChild(checkbox);
-        div.appendChild(document.createTextNode(' '+member));
+        div.appendChild(document.createTextNode(' ' + member));
         modalMemberList.appendChild(div);
     });
-    document.getElementById('participant-modal').style.display='flex';
+
+    document.getElementById('participant-modal').style.display = 'flex';
 });
 
 saveParticipantsBtn.addEventListener('click', ()=>{
