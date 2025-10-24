@@ -310,15 +310,15 @@ function renderLootEntries(filterText=''){
                 btnGroup.appendChild(priceBtn);
 
                 const settleBtn = document.createElement('button');
-                settleBtn.textContent='Settle';
-                settleBtn.className='bg-green-500 text-white px-2 py-1 rounded';
-                settleBtn.onclick=async ()=>{
-                    const entryRef = doc(firebaseDB,'lootEntries',entryId);
-                    const currentDocSnap = await getDoc(entryRef);
-                    const currentLoot = currentDocSnap.data().loot.map((l,i)=> i===index ? {...l, settled:true} : l);
-                    await updateDoc(entryRef,{loot:currentLoot});
-                };
-                btnGroup.appendChild(settleBtn);
+settleBtn.textContent = 'Settle';
+settleBtn.className = 'bg-green-500 text-white px-2 py-1 rounded';
+settleBtn.onclick = async () => {
+    const confirmSettle = confirm(`Are you sure you want to mark "${item.name}" as settled?`);
+    if (!confirmSettle) return;
+
+    await updateLootItem(entryId, index, { settled: true });
+};
+lootRow.appendChild(settleBtn);
             } else {
                 const priceSpan = document.createElement('span');
                 priceSpan.textContent=item.price;
