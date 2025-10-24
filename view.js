@@ -16,47 +16,73 @@ function renderEntries(entries) {
     const membersSet = new Set();
 
     entries.forEach(entry => {
-        const div = document.createElement('div');
-        div.className = 'loot-item';
-        div.style.border = '1px solid #ccc';
-        div.style.margin = '5px 0';
-        div.style.padding = '5px';
+        const entryDiv = document.createElement('div');
+        entryDiv.className = `loot-item ${entry.settled ? 'settled' : 'active'}`;
+        entryDiv.style.margin = '5px 0';
+        entryDiv.style.padding = '5px';
 
-        // Boss & Date
-        div.innerHTML = `
-            <div><strong>Boss:</strong> ${entry.boss}</div>
-            <div><strong>Date:</strong> ${entry.date}</div>
-            <div><strong>Members:</strong> ${entry.members.join(', ')}</div>
-        `;
-
-        // Loot items
-        const lootContainer = document.createElement('div');
-        lootContainer.style.margin = '5px 0';
-        entry.loot.forEach(item => {
-            const lootRow = document.createElement('div');
-            lootRow.style.display = 'flex';
-            lootRow.style.justifyContent = 'space-between';
-            lootRow.innerHTML = `<span>${item.name}</span><span>${item.price}</span>`;
-            lootContainer.appendChild(lootRow);
-
-            if (!entry.settled) {
-                totalActive += item.price;
-                entry.members.forEach(m => membersSet.add(m));
-            }
-        });
-        div.appendChild(lootContainer);
-
-        // Total & Share
+        // Collapsed header
+        const collapsedDiv = document.createElement('div');
+        collapsedDiv.className = 'collapsed-header';
         const totalPrice = entry.loot.reduce((a,b)=>a+b.price,0);
         const share = entry.members.length ? (totalPrice / entry.members.length).toFixed(2) : '0';
-
-        div.innerHTML += `
-            <div><strong>Total Price:</strong> ${totalPrice}</div>
-            <div><strong>Each Member Share:</strong> ${share}</div>
+        collapsedDiv.innerHTML = `
+            <div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>
             <div><strong>Status:</strong> ${entry.settled ? 'Settled' : 'Active'}</div>
         `;
 
-        lootListEl.appendChild(div);
+        // Expanded content
+        const expandedDiv = document.createElement('div');
+        expandedDiv.style.display = 'none';
+        expandedDiv.style.marginTop = '5px';
+
+        // Members
+        const membersDiv = document.createElement('div');
+        membersDiv.innerHTML = `<strong>Members:</strong> ${entry.members.join(', ')}`;
+        expandedDiv.appendChild(membersDiv);
+
+        // Loot items
+        const lootContainer = document.createElement('div');
+        lootContainer.className = 'loot-list-container';
+        entry.loot.forEach(item => {
+            const lootRow = document.createElement('div');
+            lootRow.className = 'loot-row';
+            lootRow.style.display = 'flex';
+            lootRow.style.justifyContent = 'space-between';
+            lootRow.style.padding = '2px 0';
+            lootRow.innerHTML = `<span>${item.name}</span><span>${item.price}</span>`;
+            if (entry.settled) {
+                lootRow.style.color = '#6b7280';
+                lootRow.style.textDecoration = 'line-through';
+            }
+            lootContainer.appendChild(lootRow);
+        });
+        expandedDiv.appendChild(lootContainer);
+
+        // Toggle button
+        const toggleBtn = document.createElement('button');
+        toggleBtn.textContent = 'Show Details';
+        toggleBtn.style.marginTop = '5px';
+        toggleBtn.onclick = () => {
+            if (expandedDiv.style.display === 'none') {
+                expandedDiv.style.display = 'block';
+                toggleBtn.textContent = 'Hide Details';
+            } else {
+                expandedDiv.style.display = 'none';
+                toggleBtn.textContent = 'Show Details';
+            }
+        };
+
+        entryDiv.appendChild(collapsedDiv);
+        entryDiv.appendChild(toggleBtn);
+        entryDiv.appendChild(expandedDiv);
+        lootListEl.appendChild(entryDiv);
+
+        // Add active loot to totals
+        if (!entry.settled) {
+            totalActive += totalPrice;
+            entry.members.forEach(m => membersSet.add(m));
+        }
     });
 
     totalActiveLootEl.textContent = totalActive;
