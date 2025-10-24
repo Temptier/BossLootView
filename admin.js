@@ -195,9 +195,7 @@ addNewLootEntryBtn.addEventListener('click', async () => {
     renderLootItems();
 });
 
-// ===== Render Recorded Loot Entries =====
-const lootQuery = query(lootCollection, orderBy('date','desc'));
-
+// ===== Render Recorded Loot Entries (with per-item settle) =====
 onSnapshot(lootQuery, snapshot => {
     lootListEl.innerHTML='';
     snapshot.forEach(docSnap=>{
@@ -208,13 +206,13 @@ onSnapshot(lootQuery, snapshot => {
         entryDiv.className='p-3 border rounded-md bg-gray-50';
         entryDiv.style.borderColor='#4f46e5';
 
-        // Collapsible header
+        // Header
         const headerDiv = document.createElement('div');
         headerDiv.className='flex justify-between items-center cursor-pointer';
-        headerDiv.innerHTML = `<div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>
-                               <div><strong>Status:</strong> ${entry.settled?'Settled':'Active'}</div>`;
+        headerDiv.innerHTML = `<div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>`;
         entryDiv.appendChild(headerDiv);
 
+        // Expanded
         const expandedDiv = document.createElement('div');
         expandedDiv.style.display='none';
         expandedDiv.className='mt-2 pl-2';
@@ -225,38 +223,59 @@ onSnapshot(lootQuery, snapshot => {
         membersDiv.className='mb-2';
         expandedDiv.appendChild(membersDiv);
 
-        // Loot items
+        // Loot items with per-item settle
         const lootContainer = document.createElement('div');
         lootContainer.className='space-y-1';
-        entry.loot.forEach(item=>{
+        entry.loot.forEach((item, idx)=>{
             const lootRow = document.createElement('div');
-            lootRow.className='flex justify-between';
-            lootRow.innerHTML=`<span>${item.name}</span>`;
-            if(entry.settled){
-                const priceSpan = document.createElement('span');
-                priceSpan.textContent = item.price;
-                priceSpan.style.textDecoration='line-through';
-                priceSpan.style.color='#6b7280';
-                lootRow.appendChild(priceSpan);
-            } else {
-                const priceInput = document.createElement('input');
-                priceInput.type='number';
-                priceInput.value = item.price;
-                priceInput.style.width='60px';
-                priceInput.addEventListener('change', async ()=>{
-                    const newPrice = parseFloat(priceInput.value) || 0;
-                    const updatedLoot = entry.loot.map((l,i)=>i===entry.loot.indexOf(item)? {...l,price:newPrice}:l);
+            lootRow.className='flex justify-between items-center';
+
+            const lootNameSpan = document.createElement('span');
+            lootNameSpan.textContent = item.name;
+            lootRow.appendChild(lootNameSpan);
+
+            const lootPriceInput = document.createElement('input');
+            lootPriceInput.type='number';
+            lootPriceInput.value = item.price;
+            lootPriceInput.style.width='60px';
+            lootPriceInput.disabled = item.settled || false;
+
+            lootPriceInput.addEventListener('change', async ()=>{
+                const newPrice = parseFloat(lootPriceInput.value) || 0;
+                const updatedLoot = entry.loot.map((l,i)=>i===idx ? {...l,price:newPrice} : l);
+                await updateDoc(doc(firebaseDB,'lootEntries',entryId), {loot:updatedLoot});
+            });
+
+            lootRow.appendChild(lootPriceInput);
+
+            // Settle button for each loot item
+            if(!item.settled){
+                const settleBtn = document.createElement('button');
+                settleBtn.textContent='Settle';
+                settleBtn.style.backgroundColor='#10b981';
+                settleBtn.style.color='#fff';
+                settleBtn.style.marginLeft='5px';
+                settleBtn.style.padding='2px 6px';
+                settleBtn.style.borderRadius='5px';
+                settleBtn.onclick = async ()=>{
+                    const updatedLoot = entry.loot.map((l,i)=>i===idx? {...l, settled:true}:l);
                     await updateDoc(doc(firebaseDB,'lootEntries',entryId), {loot:updatedLoot});
-                });
-                lootRow.appendChild(priceInput);
+                };
+                lootRow.appendChild(settleBtn);
+            } else {
+                lootPriceInput.style.textDecoration='line-through';
+                lootPriceInput.style.color='#6b7280';
             }
+
             lootContainer.appendChild(lootRow);
         });
+
         expandedDiv.appendChild(lootContainer);
 
-        // Total price & per member share
+        // Total and per member
         const totalPrice = entry.loot.reduce((sum,i)=>sum+i.price,0);
         const perMember = entry.members.length>0 ? (totalPrice/entry.members.length).toFixed(2):0;
+
         const summaryDiv = document.createElement('div');
         summaryDiv.className='mt-2';
         summaryDiv.innerHTML = `<strong>Total Price:</strong> ${totalPrice} | <strong>Each Member Share:</strong> ${perMember}`;
@@ -269,31 +288,20 @@ onSnapshot(lootQuery, snapshot => {
             expandedDiv.style.display = expandedDiv.style.display==='none'?'block':'none';
         });
 
-        // Action buttons
-        const actionDiv = document.createElement('div');
-        actionDiv.style.marginTop='5px';
-        if(!entry.settled){
-            const settleBtn = document.createElement('button');
-            settleBtn.textContent='Settle';
-            settleBtn.style.backgroundColor='#10b981';
-            settleBtn.style.color='#fff';
-            settleBtn.style.marginRight='5px';
-            settleBtn.onclick=async ()=>{
-                await updateDoc(doc(firebaseDB,'lootEntries',entryId), {settled:true});
-            };
-            actionDiv.appendChild(settleBtn);
-        }
+        // Remove entire entry
         const removeBtn = document.createElement('button');
-        removeBtn.textContent='Remove';
+        removeBtn.textContent='Remove Entry';
         removeBtn.style.backgroundColor='#ef4444';
         removeBtn.style.color='#fff';
+        removeBtn.style.marginTop='5px';
+        removeBtn.style.padding='2px 6px';
+        removeBtn.style.borderRadius='5px';
         removeBtn.onclick=async ()=>{
             if(confirm('Remove this loot entry?')){
                 await deleteDoc(doc(firebaseDB,'lootEntries',entryId));
             }
         };
-        actionDiv.appendChild(removeBtn);
-        entryDiv.appendChild(actionDiv);
+        entryDiv.appendChild(removeBtn);
 
         lootListEl.appendChild(entryDiv);
     });
