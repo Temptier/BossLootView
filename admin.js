@@ -2,6 +2,28 @@
 import { firebaseDB } from './firebase-init.js';
 import { collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot, getDocs, getDoc, where } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
+// ===== Navigation / Password =====
+const backBtn = document.getElementById('back-btn');
+const changePasswordBtn = document.getElementById('change-password-btn');
+
+// Back button: go to index.html
+backBtn.addEventListener('click', () => {
+    window.location.href = 'index.html';
+});
+
+// Change password button: prompt new phrase/password
+changePasswordBtn.addEventListener('click', () => {
+    let currentPassword = localStorage.getItem('adminPassword');
+    const input = prompt("Enter current password/phrase:");
+    if(input !== currentPassword){
+        return alert("Incorrect current password!");
+    }
+    const newPass = prompt("Enter new password/phrase:");
+    if(!newPass) return alert("Password cannot be empty.");
+    localStorage.setItem('adminPassword', newPass);
+    alert("Password/phrase updated successfully!");
+});
+
 // ===== DOM Elements =====
 const addBossBtn = document.getElementById('add-boss-btn');
 const addMemberBtn = document.getElementById('add-member-btn');
