@@ -10,7 +10,7 @@ const clearFiltersBtn = document.getElementById('clear-filters');
 
 let allLootEntries = [];
 
-// Render loot entries function with filtering
+// Render loot entries with per-item member share
 function renderLootEntries() {
     const bossFilter = filterBossInput.value.toLowerCase();
     const memberFilter = filterMemberInput.value.toLowerCase();
@@ -38,34 +38,59 @@ function renderLootEntries() {
         expandedDiv.style.display = 'none';
         expandedDiv.className = 'mt-2 pl-2';
 
-        // Members
+        // Participants
         const membersDiv = document.createElement('div');
         membersDiv.innerHTML=`<strong>Participants:</strong> ${entry.members.join(', ')}`;
         membersDiv.className = 'mb-2';
         expandedDiv.appendChild(membersDiv);
 
-        // Loot list
+        // Loot list with per-member share
         const lootContainer = document.createElement('div');
         lootContainer.className = 'space-y-1';
+
         entry.loot.forEach(item => {
             const lootRow = document.createElement('div');
-            lootRow.className = 'flex justify-between';
-            lootRow.innerHTML = `<span>${item.name}</span><span>${item.price}</span>`;
+            lootRow.className = 'flex flex-col md:flex-row justify-between items-start md:items-center gap-1';
+
+            const namePriceDiv = document.createElement('div');
+            namePriceDiv.className = 'flex justify-between w-full md:w-auto gap-4';
+
+            const nameSpan = document.createElement('span');
+            nameSpan.textContent = item.name;
+
+            const priceSpan = document.createElement('span');
+            priceSpan.textContent = item.price;
+
+            namePriceDiv.appendChild(nameSpan);
+            namePriceDiv.appendChild(priceSpan);
+
+            lootRow.appendChild(namePriceDiv);
+
+            // Per-member share
+            const perMemberDiv = document.createElement('div');
+            const perMember = entry.members.length > 0 ? (item.price / entry.members.length).toFixed(2) : 0;
+            perMemberDiv.innerHTML = `<small>Each Member Share: ${perMember}</small>`;
+            perMemberDiv.className = 'text-gray-600 ml-1';
+            lootRow.appendChild(perMemberDiv);
+
+            // Gray out if settled
             if(entry.settled){
                 lootRow.style.textDecoration='line-through';
                 lootRow.style.color='#6b7280';
             }
+
             lootContainer.appendChild(lootRow);
         });
+
         expandedDiv.appendChild(lootContainer);
 
-        // Total Price and per member share
+        // Total price & per-member summary
         const totalPrice = entry.loot.reduce((sum,i)=>sum+i.price,0);
-        const perMember = entry.members.length > 0 ? (totalPrice / entry.members.length).toFixed(2) : 0;
+        const perMemberOverall = entry.members.length>0 ? (totalPrice/entry.members.length).toFixed(2) : 0;
 
         const summaryDiv = document.createElement('div');
-        summaryDiv.className='mt-2';
-        summaryDiv.innerHTML = `<strong>Total Price:</strong> ${totalPrice} | <strong>Each Member Share:</strong> ${perMember}`;
+        summaryDiv.className='mt-2 font-semibold';
+        summaryDiv.innerHTML = `<strong>Total Price:</strong> ${totalPrice} | <strong>Each Member Share Overall:</strong> ${perMemberOverall}`;
         expandedDiv.appendChild(summaryDiv);
 
         entryDiv.appendChild(expandedDiv);
