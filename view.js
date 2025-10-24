@@ -1,45 +1,57 @@
+// Elements
 const lootList = document.getElementById('loot-list');
 const totalActiveLootEl = document.getElementById('total-active-loot');
 const activeShareEl = document.getElementById('active-share-per-member');
 
-// --- Load recorded entries from localStorage ---
-function getRecordedEntries() {
-    const data = localStorage.getItem('guildLootEntries');
-    return data ? JSON.parse(data) : [];
-}
-
-// --- Render the entries ---
-function renderEntries() {
-    const recordedEntries = getRecordedEntries();
+// Load entries from localStorage
+function loadLootEntries() {
     lootList.innerHTML = '';
+    const entries = JSON.parse(localStorage.getItem('guildLootEntries') || '[]');
 
-    let total = 0;
+    let totalActive = 0;
     let membersSet = new Set();
 
-    recordedEntries.forEach(entry => {
+    entries.forEach(entry => {
         const div = document.createElement('div');
         div.className = 'loot-item';
 
-        const lootHTML = entry.loot.map(l => `<div>${l.name} : ${l.price}</div>`).join('');
+        const memberStr = entry.members.join(', ');
 
         div.innerHTML = `
-            <div>Boss : ${entry.boss}</div>
-            <div>Date : ${entry.date}</div>
-            <div>Members : ${entry.members.join(', ')}</div>
-            <div class="loot-list-container">${lootHTML}</div>
-            <div>Total Price : <span>${entry.loot.reduce((a,b)=>a+b.price,0)}</span></div>
-            <div>Each Member Share : <span>${(entry.loot.reduce((a,b)=>a+b.price,0)/entry.members.length).toFixed(2)}</span></div>
+            <div><span>Boss :</span> ${entry.boss}</div>
+            <div><span>Date :</span> ${entry.date}</div>
+            <div><span>Members :</span> ${memberStr}</div>
+            <div class="loot-list-container"></div>
+            <div><span>Total Price :</span> <span class="total-price">0</span></div>
+            <div><span>Each Member Share :</span> <span class="share">0</span></div>
         `;
 
-        lootList.appendChild(div);
+        const lootContainer = div.querySelector('.loot-list-container');
 
-        total += entry.loot.reduce((a,b)=>a+b.price,0);
-        entry.members.forEach(m => membersSet.add(m));
+        entry.loot.forEach(item => {
+            const lootRow = document.createElement('div');
+            lootRow.className = 'loot-row';
+            lootRow.innerHTML = `
+                Loot: <span class="loot-name-input">${item.name}</span>
+                Price: <span class="loot-price-input">${item.price}</span>
+            `;
+            lootContainer.appendChild(lootRow);
+
+            totalActive += item.price;
+            entry.members.forEach(m => membersSet.add(m));
+        });
+
+        // Update total and share
+        div.querySelector('.total-price').textContent = entry.loot.reduce((a,b)=>a+b.price,0);
+        const share = entry.members.length ? (div.querySelector('.total-price').textContent / entry.members.length).toFixed(2) : '0';
+        div.querySelector('.share').textContent = share;
+
+        lootList.appendChild(div);
     });
 
-    totalActiveLootEl.textContent = total;
-    activeShareEl.textContent = (total / (membersSet.size || 1)).toFixed(2);
+    totalActiveLootEl.textContent = totalActive;
+    activeShareEl.textContent = (totalActive / (membersSet.size || 1)).toFixed(2);
 }
 
-// --- Initialize ---
-renderEntries();
+// Initial load
+loadLootEntries();
