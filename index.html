@@ -3,21 +3,24 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guild Boss Loot - Viewer</title>
+<title>Guild Boss Loot</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<button class="admin-btn" onclick="location.href='admin.html'">Admin</button>
-<h1>Guild Boss Loot</h1>
 
-<!-- Recorded Loot Entries Panel -->
-<div class="panel">
-<h2>Recorded Loot Entries</h2>
-<div id="loot-list"></div>
-<div class="summary-panel">
-    <div><strong>Total Active Loot:</strong> <span id="total-active-loot">0</span></div>
-    <div><strong>Active Share per Member:</strong> <span id="active-share-per-member">0</span></div>
+<!-- ===== Header ===== -->
+<div style="display:flex; justify-content:center; align-items:center; margin-bottom:20px;">
+    <h1>Guild Boss Loot</h1>
 </div>
+
+<!-- ===== Recorded Loot Entries Panel ===== -->
+<div class="panel">
+    <h2>Recorded Loot Entries</h2>
+    <div id="loot-list"></div>
+    <div class="summary-panel">
+        <div><strong>Total Active Loot:</strong> <span id="total-active-loot">0</span></div>
+        <div><strong>Active Share per Member:</strong> <span id="active-share-per-member">0</span></div>
+    </div>
 </div>
 
 <script src="view.js"></script>
