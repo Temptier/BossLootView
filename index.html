@@ -20,10 +20,10 @@
   <div id="loot-list" class="space-y-3"></div>
 </div>
 
-<!-- Admin Password Modal -->
+<!-- Admin Phrase Modal -->
 <div id="admin-password-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
   <div class="bg-white p-4 rounded-lg w-80">
-    <h3 class="font-bold mb-2">Enter Admin Phrase</h3>
+    <h3 id="admin-modal-title" class="font-bold mb-2">Enter Admin Phrase</h3>
     <input id="admin-password-input" type="password" placeholder="Admin Phrase" class="border p-2 rounded w-full mb-3">
     <div class="flex justify-end gap-2">
       <button id="submit-password-btn" class="bg-green-500 text-white px-3 py-1 rounded">Submit</button>
@@ -34,18 +34,35 @@
 
 <script type="module">
 import { firebaseDB } from './firebase-init.js';
-import { collection, query, orderBy, onSnapshot, doc, getDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-// ===== Admin Login via Firebase Phrase =====
+// ===== Admin Phrase Handling =====
 const adminBtn = document.getElementById('admin-btn');
 const passwordModal = document.getElementById('admin-password-modal');
 const passwordInput = document.getElementById('admin-password-input');
 const submitPasswordBtn = document.getElementById('submit-password-btn');
 const closePasswordBtn = document.getElementById('close-password-btn');
+const modalTitle = document.getElementById('admin-modal-title');
 
-adminBtn.addEventListener('click', ()=>{
+const adminDocRef = doc(firebaseDB, 'adminConfig', 'adminLogin');
+
+let isCreating = false;
+
+async function checkAdminPhrase() {
+    const adminDoc = await getDoc(adminDocRef);
+    if(adminDoc.exists() && adminDoc.data().phrase){
+        isCreating = false;
+        modalTitle.textContent = "Enter Admin Phrase";
+    } else {
+        isCreating = true;
+        modalTitle.textContent = "Create Admin Phrase";
+    }
+}
+
+adminBtn.addEventListener('click', async ()=>{
     passwordModal.style.display='flex';
     passwordInput.value='';
+    await checkAdminPhrase();
 });
 
 closePasswordBtn.addEventListener('click', ()=>{
@@ -56,112 +73,21 @@ submitPasswordBtn.addEventListener('click', async ()=>{
     const entered = passwordInput.value.trim();
     if(!entered) return alert('Enter admin phrase');
 
-    try {
-        console.log("Fetching admin phrase from Firestore...");
-        const adminDocRef = doc(firebaseDB, 'adminConfig', 'adminLogin');
-        const adminDoc = await getDoc(adminDocRef);
+    const adminDoc = await getDoc(adminDocRef);
 
-        console.log("Document exists?", adminDoc.exists());
-        if(adminDoc.exists()){
-            const data = adminDoc.data();
-            console.log("Firestore data:", data);
-
-            const storedPhrase = data.phrase;
-            if(!storedPhrase){
-                console.error("Phrase field not found!");
-                alert("Admin phrase not configured correctly!");
-                return;
-            }
-
-            console.log("Entered:", entered, "Stored:", storedPhrase);
-            if(entered === storedPhrase){
-                console.log("Admin login successful!");
-                window.location.href='admin.html';
-            } else {
-                console.warn("Incorrect phrase entered");
-                alert('Incorrect admin phrase!');
-            }
+    if(isCreating){
+        // First time create password
+        await setDoc(adminDocRef, { phrase: entered });
+        alert("Admin phrase created successfully!");
+        window.location.href='admin.html';
+    } else {
+        const storedPhrase = adminDoc.data().phrase;
+        if(entered === storedPhrase){
+            window.location.href='admin.html';
         } else {
-            console.error("Admin document not found!");
-            alert('Admin configuration not found in database!');
+            alert("Incorrect admin phrase!");
         }
-    } catch(e){
-        console.error("Error fetching admin phrase:", e);
-        alert('Error checking admin phrase.');
     }
-});
-
-// ===== Display Recorded Loot Entries =====
-const lootListEl = document.getElementById('loot-list');
-const lootCollection = collection(firebaseDB,'lootEntries');
-const lootQuery = query(lootCollection, orderBy('date','desc'));
-
-onSnapshot(lootQuery, snapshot => {
-    lootListEl.innerHTML='';
-    snapshot.forEach(docSnap=>{
-        const entry = docSnap.data();
-
-        const entryDiv = document.createElement('div');
-        entryDiv.className='p-3 border rounded-md bg-gray-50';
-        entryDiv.style.borderColor='#4f46e5';
-
-        const headerDiv = document.createElement('div');
-        headerDiv.className='flex justify-between items-center cursor-pointer';
-        headerDiv.innerHTML = `<div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>
-                               <div><strong>Status:</strong> ${entry.settled?'Settled':'Active'}</div>`;
-        entryDiv.appendChild(headerDiv);
-
-        const expandedDiv = document.createElement('div');
-        expandedDiv.style.display='none';
-        expandedDiv.className='mt-2 pl-2';
-
-        // Members
-        const membersDiv = document.createElement('div');
-        membersDiv.innerHTML=`<strong>Participants:</strong> ${entry.members.join(', ')}`;
-        membersDiv.className='mb-2';
-        expandedDiv.appendChild(membersDiv);
-
-        // Loot list
-        const lootContainer = document.createElement('div');
-        lootContainer.className='space-y-1';
-        entry.loot.forEach(item=>{
-            const lootRow = document.createElement('div');
-            lootRow.className='flex justify-between';
-            lootRow.innerHTML=`<span>${item.name}</span><span>${item.price}</span>`;
-            if(entry.settled){
-                lootRow.style.textDecoration='line-through';
-                lootRow.style.color='#6b7280';
-            }
-            lootContainer.appendChild(lootRow);
-        });
-        expandedDiv.appendChild(lootContainer);
-
-        // Total price & per-loot shares
-        const totalPrice = entry.loot.reduce((sum,i)=>sum+i.price,0);
-        const summaryDiv = document.createElement('div');
-        summaryDiv.className='mt-2 font-semibold';
-        summaryDiv.innerHTML = `<strong>Total Price:</strong> ${totalPrice}`;
-        expandedDiv.appendChild(summaryDiv);
-
-        const perLootDiv = document.createElement('div');
-        perLootDiv.className='mt-1';
-        perLootDiv.innerHTML = '<strong>Per Loot Share:</strong>';
-        const ulShares = document.createElement('ul');
-        entry.loot.forEach(l=>{
-            const share = entry.members.length>0 ? (l.price/entry.members.length).toFixed(2) : 0;
-            const li = document.createElement('li');
-            li.textContent = `${l.name}: ${share} per member`;
-            ulShares.appendChild(li);
-        });
-        perLootDiv.appendChild(ulShares);
-        expandedDiv.appendChild(perLootDiv);
-
-        entryDiv.appendChild(expandedDiv);
-
-        headerDiv.addEventListener('click', ()=>{expandedDiv.style.display = expandedDiv.style.display==='none'?'block':'none';});
-
-        lootListEl.appendChild(entryDiv);
-    });
 });
 </script>
 
