@@ -14,6 +14,11 @@
   <button id="admin-btn" class="bg-indigo-600 text-white px-3 py-1 rounded">Admin</button>
 </div>
 
+<!-- Setup Notice -->
+<div id="setup-notice" class="hidden p-4 bg-yellow-100 border-l-4 border-yellow-500 mb-4">
+  ⚠️ No admin phrase found! Please create one to enable admin access.
+</div>
+
 <!-- Recorded Loot Entries Panel -->
 <div class="p-4 bg-white border rounded-md">
   <h2 class="text-xl font-semibold mb-2">Recorded Loot Entries</h2>
@@ -43,31 +48,38 @@ const passwordInput = document.getElementById('admin-password-input');
 const submitPasswordBtn = document.getElementById('submit-password-btn');
 const closePasswordBtn = document.getElementById('close-password-btn');
 const modalTitle = document.getElementById('admin-modal-title');
+const setupNotice = document.getElementById('setup-notice');
 
 const adminDocRef = doc(firebaseDB, 'adminConfig', 'adminLogin');
 let isCreating = false;
 
+// Check if admin phrase exists and show notice if not
 async function checkAdminPhrase() {
     const adminDoc = await getDoc(adminDocRef);
     if(adminDoc.exists() && adminDoc.data().phrase){
         isCreating = false;
         modalTitle.textContent = "Enter Admin Phrase";
+        setupNotice.style.display = 'none';
     } else {
         isCreating = true;
         modalTitle.textContent = "Create Admin Phrase";
+        setupNotice.style.display = 'block';
     }
 }
 
+// Open modal
 adminBtn.addEventListener('click', async ()=>{
     passwordModal.style.display='flex';
     passwordInput.value='';
     await checkAdminPhrase();
 });
 
+// Close modal
 closePasswordBtn.addEventListener('click', ()=>{
     passwordModal.style.display='none';
 });
 
+// Submit password or create phrase
 submitPasswordBtn.addEventListener('click', async ()=>{
     const entered = passwordInput.value.trim();
     if(!entered) return alert('Enter admin phrase');
@@ -75,10 +87,12 @@ submitPasswordBtn.addEventListener('click', async ()=>{
     const adminDoc = await getDoc(adminDocRef);
 
     if(isCreating){
-        // First time create password
+        // First-time setup: create admin phrase
         try {
             await setDoc(adminDocRef, { phrase: entered });
             alert("Admin phrase created successfully!");
+            passwordModal.style.display='none';
+            setupNotice.style.display='none';
             window.location.href='admin.html';
         } catch(e) {
             console.error("Error creating phrase:", e);
