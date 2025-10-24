@@ -9,90 +9,83 @@
 <body class="bg-gray-100 p-4">
 
 <header class="flex justify-between items-center mb-4">
-    <button id="back-btn" class="bg-gray-600 text-white px-3 py-1 rounded">Back</button>
+    <button onclick="history.back()" class="bg-gray-500 text-white px-4 py-2 rounded">Back</button>
     <h1 class="text-2xl font-bold">Guild Boss Loot - Admin</h1>
-    <button id="change-password-btn" class="bg-indigo-600 text-white px-3 py-1 rounded">Change Phrase</button>
 </header>
 
 <!-- Add Boss / Add Member -->
-<section class="mb-4 p-4 border rounded bg-white space-y-2">
-    <div class="flex space-x-2">
-        <input type="text" id="new-boss-name" placeholder="New Boss" class="border rounded px-2 py-1 flex-1">
-        <button id="add-boss-btn" class="bg-blue-600 text-white px-4 py-1 rounded">Add Boss</button>
+<section class="border p-4 rounded bg-white mb-4">
+    <h2 class="text-xl font-semibold mb-2">Manage Bosses & Members</h2>
+    <div class="flex space-x-2 mb-2">
+        <input type="text" id="new-boss-name" placeholder="New Boss" class="border p-1 rounded flex-1">
+        <button id="add-boss-btn" class="bg-blue-600 text-white px-2 py-1 rounded">Add Boss</button>
     </div>
     <div class="flex space-x-2">
-        <input type="text" id="new-member-name" placeholder="New Member" class="border rounded px-2 py-1 flex-1">
-        <button id="add-member-btn" class="bg-blue-600 text-white px-4 py-1 rounded">Add Member</button>
+        <input type="text" id="new-member-name" placeholder="New Member" class="border p-1 rounded flex-1">
+        <button id="add-member-btn" class="bg-blue-600 text-white px-2 py-1 rounded">Add Member</button>
     </div>
 </section>
 
 <!-- Boss Loot Panel -->
-<section class="mb-4 p-4 border rounded bg-white space-y-3">
-    <h2 class="font-bold text-lg">Boss Loot Panel</h2>
-
-    <div class="flex space-x-2">
-        <input type="text" id="loot-name-input" placeholder="Loot Name" class="border rounded px-2 py-1 flex-1">
-        <input type="number" id="loot-price-input" placeholder="Price" class="border rounded px-2 py-1 w-24">
-        <button id="add-loot-btn" class="bg-green-600 text-white px-3 py-1 rounded">Add Loot</button>
+<section class="border p-4 rounded bg-white mb-4">
+    <h2 class="text-xl font-semibold mb-2">Boss Loot Panel</h2>
+    <div class="flex space-x-2 mb-2">
+        <input type="text" id="loot-name-input" placeholder="Loot Name" class="border p-1 rounded flex-1">
+        <input type="number" id="loot-price-input" placeholder="Price" class="border p-1 rounded w-24">
+        <button id="add-loot-btn" class="bg-green-600 text-white px-2 py-1 rounded">Add Loot</button>
     </div>
 
-    <div>
-        <button id="select-boss-btn" class="bg-indigo-500 text-white px-3 py-1 rounded">Select Boss</button>
+    <div class="mb-2">
+        <button id="select-boss-btn" class="bg-indigo-600 text-white px-2 py-1 rounded">Select Boss</button>
         <span id="selected-boss" class="ml-2 font-semibold">None</span>
     </div>
-
-    <div>
-        <button id="edit-participants-btn" class="bg-indigo-500 text-white px-3 py-1 rounded">Select Participants</button>
+    <div class="mb-2">
+        <button id="edit-participants-btn" class="bg-indigo-600 text-white px-2 py-1 rounded">Edit Participants</button>
         <ul id="selected-participants" class="ml-4 list-disc"></ul>
     </div>
 
-    <div id="loot-items-container"></div>
-
-    <button id="add-new-loot-entry-btn" class="bg-purple-600 text-white px-4 py-1 rounded">Add New Loot Entry</button>
+    <div id="loot-items-container" class="mb-2"></div>
+    <button id="add-new-loot-entry-btn" class="bg-blue-600 text-white px-4 py-2 rounded">Add New Loot Entry</button>
 </section>
 
 <!-- Recorded Loot Entries -->
-<section class="p-4 border rounded bg-white">
-    <h2 class="font-bold text-lg mb-2">Recorded Loot Entries</h2>
-    <div id="loot-list" class="space-y-3"></div>
+<section class="border p-4 rounded bg-white mb-4">
+    <h2 class="text-xl font-semibold mb-2">Recorded Loot Entries</h2>
+    <div id="loot-list"></div>
 </section>
 
-<!-- Boss Modal -->
-<div id="boss-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">
-    <div class="bg-white p-4 rounded w-80">
-        <h3 class="font-bold mb-2">Select Boss</h3>
-        <div id="modal-boss-list" class="space-y-1 max-h-64 overflow-auto"></div>
-        <div class="mt-3 flex justify-end space-x-2">
-            <button id="save-boss-btn" class="bg-green-600 text-white px-3 py-1 rounded">Save</button>
-            <button id="close-boss-btn" class="bg-gray-600 text-white px-3 py-1 rounded">Close</button>
-        </div>
+<!-- Modals -->
+<div id="boss-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div class="bg-white p-4 rounded w-64">
+        <h3 class="font-semibold mb-2">Select Boss</h3>
+        <div id="modal-boss-list" class="mb-2"></div>
+        <button id="save-boss-btn" class="bg-green-600 text-white px-2 py-1 rounded mr-2">Save</button>
+        <button id="close-boss-btn" class="bg-gray-500 text-white px-2 py-1 rounded">Close</button>
     </div>
 </div>
 
-<!-- Participants Modal -->
-<div id="participant-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">
-    <div class="bg-white p-4 rounded w-80">
-        <h3 class="font-bold mb-2">Select Participants</h3>
-        <div id="modal-member-list" class="space-y-1 max-h-64 overflow-auto"></div>
-        <div class="mt-3 flex justify-end space-x-2">
-            <button id="save-participants-btn" class="bg-green-600 text-white px-3 py-1 rounded">Save</button>
-            <button id="close-participants-btn" class="bg-gray-600 text-white px-3 py-1 rounded">Close</button>
-        </div>
+<div id="participant-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div class="bg-white p-4 rounded w-64">
+        <h3 class="font-semibold mb-2">Select Participants</h3>
+        <div id="modal-member-list" class="mb-2"></div>
+        <button id="save-participants-btn" class="bg-green-600 text-white px-2 py-1 rounded mr-2">Save</button>
+        <button id="close-participants-btn" class="bg-gray-500 text-white px-2 py-1 rounded">Close</button>
     </div>
 </div>
 
-<!-- Edit Loot Modal -->
-<div id="edit-loot-modal" class="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center hidden">
-    <div class="bg-white p-4 rounded w-80">
-        <h3 class="font-bold mb-2">Edit Loot Price: <span id="edit-loot-name"></span></h3>
-        <input type="number" id="edit-loot-price-input" class="border rounded px-2 py-1 w-full">
-        <div class="mt-3 flex justify-end space-x-2">
-            <button id="save-loot-price-btn" class="bg-green-600 text-white px-3 py-1 rounded">Save</button>
-            <button id="close-loot-price-btn" class="bg-gray-600 text-white px-3 py-1 rounded">Close</button>
-        </div>
+<div id="edit-loot-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+    <div class="bg-white p-4 rounded w-64">
+        <h3 class="font-semibold mb-2">Edit Loot Price</h3>
+        <div class="mb-2">Loot: <span id="edit-loot-name"></span></div>
+        <input type="number" id="edit-loot-price-input" class="border p-1 rounded w-full mb-2">
+        <button id="save-loot-price-btn" class="bg-green-600 text-white px-2 py-1 rounded mr-2">Save</button>
+        <button id="close-loot-price-btn" class="bg-gray-500 text-white px-2 py-1 rounded">Close</button>
     </div>
 </div>
 
-<script type="module" src="./admin.js"></script>
+<script type="module">
+    import './admin.js';
+</script>
+
 </body>
 </html>
