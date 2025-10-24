@@ -3,98 +3,184 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Guild Boss Loot - Admin</title>
+<title>Guild Boss Loot</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 p-4">
 
+<!-- Header -->
 <div class="flex justify-between items-center mb-4">
-  <button id="back-btn" class="bg-gray-300 px-3 py-1 rounded">Back</button>
-  <h1 class="text-2xl font-bold">Guild Boss Loot - Admin</h1>
-  <button id="change-password-btn" class="bg-yellow-500 text-white px-3 py-1 rounded">Change Admin Phrase</button>
+  <h1 class="text-2xl font-bold">Guild Boss Loot</h1>
+  <button id="admin-btn" class="bg-indigo-600 text-white px-3 py-1 rounded">Admin</button>
 </div>
 
-<div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-
-  <div class="p-4 bg-white border rounded-md">
-    <h2 class="text-xl font-semibold mb-2">Boss Loot Panel</h2>
-
-    <div class="mb-4 space-y-2">
-      <div>
-        <input id="new-boss-name" type="text" placeholder="New Boss" class="border p-1 rounded w-2/3">
-        <button id="add-boss-btn" class="bg-indigo-500 text-white px-2 py-1 rounded">Add Boss</button>
-      </div>
-      <div>
-        <input id="new-member-name" type="text" placeholder="New Member" class="border p-1 rounded w-2/3">
-        <button id="add-member-btn" class="bg-indigo-500 text-white px-2 py-1 rounded">Add Member</button>
-      </div>
-    </div>
-
-    <div class="mb-4 space-y-2">
-      <div>
-        <span class="font-semibold">Selected Boss:</span> <span id="selected-boss">None</span>
-        <button id="select-boss-btn" class="bg-green-500 text-white px-2 py-1 rounded ml-2">Select Boss</button>
-      </div>
-      <div>
-        <span class="font-semibold">Participants:</span>
-        <ul id="selected-participants" class="ml-4 list-disc"></ul>
-        <button id="edit-participants-btn" class="bg-green-500 text-white px-2 py-1 rounded mt-1">Edit Participants</button>
-      </div>
-    </div>
-
-    <div class="mb-2 space-y-2">
-      <input id="loot-name-input" type="text" placeholder="Loot Name" class="border p-1 rounded w-1/2">
-      <input id="loot-price-input" type="number" placeholder="Price" class="border p-1 rounded w-1/4">
-      <button id="add-loot-btn" class="bg-indigo-500 text-white px-2 py-1 rounded">Add Loot</button>
-    </div>
-    <div id="loot-items-container" class="mb-2"></div>
-
-    <button id="add-new-loot-entry-btn" class="bg-blue-600 text-white px-3 py-1 rounded mt-2 w-full">Add New Loot Entry</button>
-  </div>
-
-  <div class="p-4 bg-white border rounded-md">
-    <h2 class="text-xl font-semibold mb-2">Recorded Loot Entries</h2>
-    <div id="loot-list" class="space-y-3"></div>
-  </div>
+<!-- Setup Notice -->
+<div id="setup-notice" class="hidden p-4 bg-yellow-100 border-l-4 border-yellow-500 mb-4">
+  ⚠️ No admin phrase found! Please create one to enable admin access.
 </div>
 
-<!-- Boss Modal -->
-<div id="boss-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
+<!-- Recorded Loot Entries Panel -->
+<div class="p-4 bg-white border rounded-md">
+  <h2 class="text-xl font-semibold mb-2">Recorded Loot Entries</h2>
+  <div id="loot-list" class="space-y-3"></div>
+</div>
+
+<!-- Admin Phrase Modal -->
+<div id="admin-password-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
   <div class="bg-white p-4 rounded-lg w-80">
-    <h3 class="font-bold mb-2">Select Boss</h3>
-    <div id="modal-boss-list" class="space-y-1 max-h-64 overflow-y-auto mb-3"></div>
+    <h3 id="admin-modal-title" class="font-bold mb-2">Enter Admin Phrase</h3>
+    <input id="admin-password-input" type="password" placeholder="Admin Phrase" class="border p-2 rounded w-full mb-3">
     <div class="flex justify-end gap-2">
-      <button id="save-boss-btn" class="bg-green-500 text-white px-3 py-1 rounded">Save</button>
-      <button id="close-boss-btn" class="bg-gray-300 px-3 py-1 rounded">Close</button>
+      <button id="submit-password-btn" class="bg-green-500 text-white px-3 py-1 rounded">Submit</button>
+      <button id="close-password-btn" class="bg-gray-300 px-3 py-1 rounded">Close</button>
     </div>
   </div>
 </div>
 
-<!-- Participants Modal -->
-<div id="participant-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-  <div class="bg-white p-4 rounded-lg w-80">
-    <h3 class="font-bold mb-2">Select Participants</h3>
-    <div id="modal-member-list" class="space-y-1 max-h-64 overflow-y-auto mb-3"></div>
-    <div class="flex justify-end gap-2">
-      <button id="save-participants-btn" class="bg-green-500 text-white px-3 py-1 rounded">Save</button>
-      <button id="close-participants-btn" class="bg-gray-300 px-3 py-1 rounded">Close</button>
-    </div>
-  </div>
-</div>
+<script type="module">
+import { firebaseDB } from './firebase-init.js';
+import { collection, query, orderBy, onSnapshot, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
-<!-- Edit Loot Modal -->
-<div id="edit-loot-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden">
-  <div class="bg-white p-4 rounded-lg w-72">
-    <h3 class="font-bold mb-2">Edit Loot Price</h3>
-    <p>Loot: <span id="edit-loot-name"></span></p>
-    <input id="edit-loot-price-input" type="number" class="border p-1 rounded w-full mb-3">
-    <div class="flex justify-end gap-2">
-      <button id="save-loot-price-btn" class="bg-green-500 text-white px-3 py-1 rounded">Save</button>
-      <button id="close-loot-price-btn" class="bg-gray-300 px-3 py-1 rounded">Close</button>
-    </div>
-  </div>
-</div>
+// ===== Admin Phrase Handling =====
+const adminBtn = document.getElementById('admin-btn');
+const passwordModal = document.getElementById('admin-password-modal');
+const passwordInput = document.getElementById('admin-password-input');
+const submitPasswordBtn = document.getElementById('submit-password-btn');
+const closePasswordBtn = document.getElementById('close-password-btn');
+const modalTitle = document.getElementById('admin-modal-title');
+const setupNotice = document.getElementById('setup-notice');
 
-<script type="module" src="admin.js"></script>
+const adminDocRef = doc(firebaseDB, 'adminConfig', 'adminLogin');
+let isCreating = false;
+
+async function checkAdminPhrase() {
+    const adminDoc = await getDoc(adminDocRef);
+    if(adminDoc.exists() && adminDoc.data().phrase){
+        isCreating = false;
+        modalTitle.textContent = "Enter Admin Phrase";
+        setupNotice.style.display = 'none';
+    } else {
+        isCreating = true;
+        modalTitle.textContent = "Create Admin Phrase";
+        setupNotice.style.display = 'block';
+    }
+}
+
+adminBtn.addEventListener('click', async ()=>{
+    passwordModal.style.display='flex';
+    passwordInput.value='';
+    await checkAdminPhrase();
+});
+
+closePasswordBtn.addEventListener('click', ()=>{
+    passwordModal.style.display='none';
+});
+
+submitPasswordBtn.addEventListener('click', async ()=>{
+    const entered = passwordInput.value.trim();
+    if(!entered) return alert('Enter admin phrase');
+
+    const adminDoc = await getDoc(adminDocRef);
+
+    if(isCreating){
+        // First-time setup: create admin phrase
+        try {
+            await setDoc(adminDocRef, { phrase: entered });
+            alert("Admin phrase created successfully!");
+            passwordModal.style.display='none';
+            setupNotice.style.display='none';
+            window.location.href='admin.html';
+        } catch(e) {
+            console.error("Error creating phrase:", e);
+            alert("Error creating admin phrase");
+        }
+    } else {
+        if(!adminDoc.exists() || !adminDoc.data().phrase){
+            alert("Admin phrase not found. Please create one.");
+            return;
+        }
+
+        const storedPhrase = adminDoc.data().phrase;
+        if(entered === storedPhrase){
+            window.location.href='admin.html';
+        } else {
+            alert("Incorrect admin phrase!");
+        }
+    }
+});
+
+// ===== Display Recorded Loot Entries =====
+const lootListEl = document.getElementById('loot-list');
+const lootCollection = collection(firebaseDB,'lootEntries');
+const lootQuery = query(lootCollection, orderBy('date','desc'));
+
+onSnapshot(lootQuery, snapshot => {
+    lootListEl.innerHTML='';
+    snapshot.forEach(docSnap=>{
+        const entry = docSnap.data();
+
+        const entryDiv = document.createElement('div');
+        entryDiv.className='p-3 border rounded-md bg-gray-50';
+        entryDiv.style.borderColor='#4f46e5';
+
+        const headerDiv = document.createElement('div');
+        headerDiv.className='flex justify-between items-center cursor-pointer';
+        headerDiv.innerHTML = `<div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>
+                               <div><strong>Status:</strong> ${entry.settled?'Settled':'Active'}</div>`;
+        entryDiv.appendChild(headerDiv);
+
+        const expandedDiv = document.createElement('div');
+        expandedDiv.style.display='none';
+        expandedDiv.className='mt-2 pl-2';
+
+        // Members
+        const membersDiv = document.createElement('div');
+        membersDiv.innerHTML=`<strong>Participants:</strong> ${entry.members.join(', ')}`;
+        membersDiv.className='mb-2';
+        expandedDiv.appendChild(membersDiv);
+
+        // Loot list
+        const lootContainer = document.createElement('div');
+        lootContainer.className='space-y-1';
+        entry.loot.forEach(item=>{
+            const lootRow = document.createElement('div');
+            lootRow.className='flex justify-between';
+            lootRow.innerHTML=`<span>${item.name}</span><span>${item.price}</span>`;
+            if(entry.settled){
+                lootRow.style.textDecoration='line-through';
+                lootRow.style.color='#6b7280';
+            }
+            lootContainer.appendChild(lootRow);
+        });
+        expandedDiv.appendChild(lootContainer);
+
+        // Total price & per-loot shares
+        const totalPrice = entry.loot.reduce((sum,i)=>sum+i.price,0);
+        const summaryDiv = document.createElement('div');
+        summaryDiv.className='mt-2 font-semibold';
+        summaryDiv.innerHTML = `<strong>Total Price:</strong> ${totalPrice}`;
+        expandedDiv.appendChild(summaryDiv);
+
+        const perLootDiv = document.createElement('div');
+        perLootDiv.className='mt-1';
+        perLootDiv.innerHTML = '<strong>Per Loot Share:</strong>';
+        const ulShares = document.createElement('ul');
+        entry.loot.forEach(l=>{
+            const share = entry.members.length>0 ? (l.price/entry.members.length).toFixed(2) : 0;
+            const li = document.createElement('li');
+            li.textContent = `${l.name}: ${share} per member`;
+            ulShares.appendChild(li);
+        });
+        perLootDiv.appendChild(ulShares);
+        expandedDiv.appendChild(perLootDiv);
+
+        entryDiv.appendChild(expandedDiv);
+        headerDiv.addEventListener('click', ()=>{expandedDiv.style.display = expandedDiv.style.display==='none'?'block':'none';});
+
+        lootListEl.appendChild(entryDiv);
+    });
+});
+</script>
+
 </body>
 </html>
