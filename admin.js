@@ -71,33 +71,41 @@ changePhraseBtn.addEventListener('click', ()=>{
     } else { alert('Phrase not changed.'); }
 });
 
-// ===== Add Boss =====
-addBossBtn.addEventListener('click', async ()=>{
+// Add Boss
+addBossBtn.addEventListener('click', async () => {
     const name = newBossInput.value.trim();
-    if(!name) return alert('Enter boss name');
+    if (!name) return alert('Enter boss name');
+    
+    // Prevent duplicates
+    if (bosses.includes(name)) return alert('Boss already exists!');
+
     try {
-        await addDoc(bossesCol,{name});
-        bosses.push(name);
-        newBossInput.value='';
-        alert(`Boss "${name}" added`);
-    } catch(e){
-        console.error('Error adding boss:', e);
-        alert('Error adding boss.');
+        await addDoc(bossesCol, { name });
+        bosses.push(name);        // update local array
+        newBossInput.value = '';  // clear input
+        alert('Boss added!');
+    } catch (err) {
+        console.error('Error adding boss:', err);
+        alert('Failed to add boss. Check Firebase permissions.');
     }
 });
 
-// ===== Add Member =====
-addMemberBtn.addEventListener('click', async ()=>{
+// Add Member
+addMemberBtn.addEventListener('click', async () => {
     const name = newMemberInput.value.trim();
-    if(!name) return alert('Enter member name');
+    if (!name) return alert('Enter member name');
+
+    // Prevent duplicates
+    if (members.includes(name)) return alert('Member already exists!');
+
     try {
-        await addDoc(membersCol,{name});
-        members.push(name);
-        newMemberInput.value='';
-        alert(`Member "${name}" added`);
-    } catch(e){
-        console.error('Error adding member:', e);
-        alert('Error adding member.');
+        await addDoc(membersCol, { name });
+        members.push(name);       // update local array
+        newMemberInput.value = ''; // clear input
+        alert('Member added!');
+    } catch (err) {
+        console.error('Error adding member:', err);
+        alert('Failed to add member. Check Firebase permissions.');
     }
 });
 
