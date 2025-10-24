@@ -6,72 +6,87 @@
 <title>Guild Boss Loot - Admin</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen p-4 sm:p-6">
+<body class="bg-gray-100 p-4 sm:p-6">
 
 <header class="flex justify-between items-center mb-6">
-    <button onclick="history.back()" class="bg-gray-300 px-3 py-1 rounded shadow hover:bg-gray-400">Back</button>
+    <button onclick="window.location.href='index.html'" class="bg-gray-400 text-white px-3 py-2 rounded shadow hover:bg-gray-500">Back</button>
     <h1 class="text-3xl font-bold text-indigo-700">Admin Panel</h1>
-    <button id="change-password-btn" class="bg-yellow-500 px-3 py-1 rounded shadow hover:bg-yellow-600">Change Password</button>
+    <button id="change-password-btn" class="bg-indigo-600 text-white px-3 py-2 rounded shadow hover:bg-indigo-700">Change Password</button>
 </header>
 
-<!-- Add Boss / Member -->
-<section class="mb-4 flex flex-col sm:flex-row gap-2">
-    <input type="text" id="new-boss-name" placeholder="New Boss" class="flex-1 p-2 border rounded shadow">
-    <button id="add-boss-btn" class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700">Add Boss</button>
-
-    <input type="text" id="new-member-name" placeholder="New Member" class="flex-1 p-2 border rounded shadow">
-    <button id="add-member-btn" class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700">Add Member</button>
+<!-- Add Boss / Add Member Panel -->
+<section class="border border-indigo-300 p-4 rounded-lg bg-white shadow mb-4">
+    <h2 class="text-xl font-semibold mb-2 text-indigo-600">Manage Bosses & Members</h2>
+    <div class="flex flex-col sm:flex-row gap-2">
+        <input id="new-boss-name" placeholder="New Boss" class="p-2 border rounded flex-1"/>
+        <button id="add-boss-btn" class="bg-indigo-500 text-white px-4 py-2 rounded">Add Boss</button>
+    </div>
+    <div class="flex flex-col sm:flex-row gap-2 mt-2">
+        <input id="new-member-name" placeholder="New Member" class="p-2 border rounded flex-1"/>
+        <button id="add-member-btn" class="bg-indigo-500 text-white px-4 py-2 rounded">Add Member</button>
+    </div>
 </section>
 
 <!-- Boss Loot Panel -->
-<section class="border border-indigo-300 p-4 rounded-lg bg-white shadow mb-6">
+<section class="border border-indigo-300 p-4 rounded-lg bg-white shadow mb-4">
     <h2 class="text-xl font-semibold mb-2 text-indigo-600">Boss Loot Panel</h2>
-    <div class="flex flex-col sm:flex-row gap-2 mb-3">
-        <button id="select-boss-btn" class="bg-indigo-400 px-3 py-1 rounded hover:bg-indigo-500">Select Boss</button>
-        <span id="selected-boss" class="font-semibold text-gray-700">None</span>
-        <button id="edit-participants-btn" class="bg-indigo-400 px-3 py-1 rounded hover:bg-indigo-500">Edit Participants</button>
-        <ul id="selected-participants" class="ml-2 list-disc ml-4"></ul>
-    </div>
 
     <div class="flex flex-col sm:flex-row gap-2 mb-2">
-        <input type="text" id="loot-name-input" placeholder="Loot Name" class="flex-1 p-2 border rounded shadow">
-        <input type="number" id="loot-price-input" placeholder="Price" class="flex-1 p-2 border rounded shadow">
-        <button id="add-loot-btn" class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700">Add Loot</button>
+        <input id="loot-name-input" placeholder="Loot Name" class="p-2 border rounded flex-1"/>
+        <input id="loot-price-input" placeholder="Price" type="number" class="p-2 border rounded w-32"/>
+        <button id="add-loot-btn" class="bg-indigo-500 text-white px-4 py-2 rounded">Add Loot</button>
     </div>
-    <div id="loot-items-container" class="mb-2"></div>
-    <button id="add-new-loot-entry-btn" class="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600">Add New Loot Entry</button>
+
+    <div class="mb-2">
+        <button id="select-boss-btn" class="bg-indigo-200 px-3 py-1 rounded mr-2">Select Boss</button>
+        <span id="selected-boss">None</span>
+    </div>
+
+    <div class="mb-2">
+        <button id="edit-participants-btn" class="bg-indigo-200 px-3 py-1 rounded mr-2">Select Participants</button>
+        <ul id="selected-participants" class="list-disc ml-5"></ul>
+    </div>
+
+    <div id="loot-items-container"></div>
+    <button id="add-new-loot-entry-btn" class="mt-2 bg-green-500 text-white px-4 py-2 rounded">Add New Loot Entry</button>
 </section>
 
-<!-- Recorded Loot Entries -->
+<!-- Recorded Loot Entries Panel -->
 <section class="border border-indigo-300 p-4 rounded-lg bg-white shadow">
     <h2 class="text-xl font-semibold mb-4 text-indigo-600">Recorded Loot Entries</h2>
-    <div id="loot-list" class="space-y-3"></div>
+    <div id="loot-list"></div>
 </section>
 
-<!-- Modals (Select Boss / Participants / Edit Loot Price) -->
-<div id="boss-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center">
-    <div class="bg-white p-4 rounded shadow w-11/12 sm:w-1/2 max-h-[80vh] overflow-auto" id="modal-boss-list"></div>
-    <div class="flex justify-end gap-2 mt-2">
-        <button id="save-boss-btn" class="bg-green-500 text-white px-3 py-1 rounded">Save</button>
-        <button id="close-boss-btn" class="bg-gray-300 px-3 py-1 rounded">Close</button>
+<!-- Modals -->
+<div id="boss-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-4 rounded w-80">
+        <h3 class="font-bold mb-2">Select Boss</h3>
+        <div id="modal-boss-list"></div>
+        <div class="mt-2 flex justify-end gap-2">
+            <button id="save-boss-btn" class="bg-indigo-500 text-white px-3 py-1 rounded">Save</button>
+            <button id="close-boss-btn" class="bg-gray-400 text-white px-3 py-1 rounded">Close</button>
+        </div>
     </div>
 </div>
 
-<div id="participant-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center">
-    <div class="bg-white p-4 rounded shadow w-11/12 sm:w-1/2 max-h-[80vh] overflow-auto" id="modal-member-list"></div>
-    <div class="flex justify-end gap-2 mt-2">
-        <button id="save-participants-btn" class="bg-green-500 text-white px-3 py-1 rounded">Save</button>
-        <button id="close-participants-btn" class="bg-gray-300 px-3 py-1 rounded">Close</button>
+<div id="participant-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-4 rounded w-80">
+        <h3 class="font-bold mb-2">Select Participants</h3>
+        <div id="modal-member-list"></div>
+        <div class="mt-2 flex justify-end gap-2">
+            <button id="save-participants-btn" class="bg-indigo-500 text-white px-3 py-1 rounded">Save</button>
+            <button id="close-participants-btn" class="bg-gray-400 text-white px-3 py-1 rounded">Close</button>
+        </div>
     </div>
 </div>
 
-<div id="edit-loot-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden justify-center items-center">
-    <div class="bg-white p-4 rounded shadow w-11/12 sm:w-1/3">
-        <h3>Edit Loot Price: <span id="edit-loot-name"></span></h3>
-        <input type="number" id="edit-loot-price-input" class="w-full p-2 border rounded my-2">
+<div id="edit-loot-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white p-4 rounded w-80">
+        <h3 class="font-bold mb-2">Edit Loot Price: <span id="edit-loot-name"></span></h3>
+        <input id="edit-loot-price-input" type="number" class="p-2 border rounded w-full mb-2"/>
         <div class="flex justify-end gap-2">
-            <button id="save-loot-price-btn" class="bg-green-500 text-white px-3 py-1 rounded">Save</button>
-            <button id="close-loot-price-btn" class="bg-gray-300 px-3 py-1 rounded">Close</button>
+            <button id="save-loot-price-btn" class="bg-indigo-500 text-white px-3 py-1 rounded">Save</button>
+            <button id="close-loot-price-btn" class="bg-gray-400 text-white px-3 py-1 rounded">Close</button>
         </div>
     </div>
 </div>
@@ -79,13 +94,14 @@
 <script type="module">
 import './admin.js';
 
-const changePwdBtn = document.getElementById('change-password-btn');
-changePwdBtn.addEventListener('click', ()=>{
-    const oldPwd = localStorage.getItem('adminPassword');
-    const current = prompt('Enter current password/phrase:');
-    if(current!==oldPwd) return alert('Incorrect current password!');
-    const newPwd = prompt('Enter new password/phrase:');
-    if(newPwd) localStorage.setItem('adminPassword',newPwd);
+const changePassBtn = document.getElementById('change-password-btn');
+changePassBtn.addEventListener('click', ()=>{
+    const currentPass = localStorage.getItem('adminPassword');
+    const input = prompt("Enter new admin password/phrase:", currentPass || '');
+    if(input) {
+        localStorage.setItem('adminPassword', input);
+        alert("Admin password updated!");
+    }
 });
 </script>
 
