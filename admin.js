@@ -69,7 +69,7 @@ addLootBtn.addEventListener('click', () => {
     const name = lootNameInput.value.trim();
     const price = parseFloat(lootPriceInput.value) || 0;
     if(!name) return alert('Enter loot name');
-    lootItems.push({name, price});
+    lootItems.push({name, price, settled:false});
     lootNameInput.value='';
     lootPriceInput.value='';
     renderLootItems();
@@ -182,8 +182,7 @@ addNewLootEntryBtn.addEventListener('click', async () => {
         boss: selectedBoss,
         members: selectedParticipants,
         loot: lootItems,
-        date: dateStr,
-        settled: false
+        date: dateStr
     });
 
     // Reset form
@@ -195,7 +194,9 @@ addNewLootEntryBtn.addEventListener('click', async () => {
     renderLootItems();
 });
 
-// ===== Render Recorded Loot Entries (with per-item settle) =====
+// ===== Render Recorded Loot Entries =====
+const lootQuery = query(lootCollection, orderBy('date','desc'));
+
 onSnapshot(lootQuery, snapshot => {
     lootListEl.innerHTML='';
     snapshot.forEach(docSnap=>{
@@ -232,6 +233,10 @@ onSnapshot(lootQuery, snapshot => {
 
             const lootNameSpan = document.createElement('span');
             lootNameSpan.textContent = item.name;
+            if(item.settled){
+                lootNameSpan.style.textDecoration='line-through';
+                lootNameSpan.style.color='#6b7280';
+            }
             lootRow.appendChild(lootNameSpan);
 
             const lootPriceInput = document.createElement('input');
@@ -248,7 +253,7 @@ onSnapshot(lootQuery, snapshot => {
 
             lootRow.appendChild(lootPriceInput);
 
-            // Settle button for each loot item
+            // Settle button per loot item
             if(!item.settled){
                 const settleBtn = document.createElement('button');
                 settleBtn.textContent='Settle';
@@ -262,9 +267,6 @@ onSnapshot(lootQuery, snapshot => {
                     await updateDoc(doc(firebaseDB,'lootEntries',entryId), {loot:updatedLoot});
                 };
                 lootRow.appendChild(settleBtn);
-            } else {
-                lootPriceInput.style.textDecoration='line-through';
-                lootPriceInput.style.color='#6b7280';
             }
 
             lootContainer.appendChild(lootRow);
@@ -272,13 +274,14 @@ onSnapshot(lootQuery, snapshot => {
 
         expandedDiv.appendChild(lootContainer);
 
-        // Total and per member
-        const totalPrice = entry.loot.reduce((sum,i)=>sum+i.price,0);
+        // Total & per member (active items only)
+        const activeLoot = entry.loot.filter(i=>!i.settled);
+        const totalPrice = activeLoot.reduce((sum,i)=>sum+i.price,0);
         const perMember = entry.members.length>0 ? (totalPrice/entry.members.length).toFixed(2):0;
 
         const summaryDiv = document.createElement('div');
         summaryDiv.className='mt-2';
-        summaryDiv.innerHTML = `<strong>Total Price:</strong> ${totalPrice} | <strong>Each Member Share:</strong> ${perMember}`;
+        summaryDiv.innerHTML = `<strong>Total Price (active):</strong> ${totalPrice} | <strong>Each Member Share:</strong> ${perMember}`;
         expandedDiv.appendChild(summaryDiv);
 
         entryDiv.appendChild(expandedDiv);
