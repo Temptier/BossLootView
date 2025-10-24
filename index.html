@@ -6,23 +6,17 @@
 <title>Guild Boss Loot</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 min-h-screen p-4 sm:p-6">
+<body class="bg-gray-100 p-4 sm:p-6">
 
 <header class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold text-indigo-700">Guild Boss Loot</h1>
     <button id="admin-btn" class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700">Admin</button>
 </header>
 
-<!-- Search / Filter -->
-<div class="mb-4">
-    <input type="text" id="search-input" placeholder="Search by boss or member" 
-           class="w-full sm:w-1/2 p-2 border border-gray-300 rounded shadow focus:outline-none focus:ring-2 focus:ring-indigo-400">
-</div>
-
 <!-- Recorded Loot Entries Panel -->
 <section class="border border-indigo-300 p-4 rounded-lg bg-white shadow">
     <h2 class="text-xl font-semibold mb-4 text-indigo-600">Recorded Loot Entries</h2>
-    <div id="loot-list" class="space-y-3"></div>
+    <div id="loot-list"></div>
 </section>
 
 <script type="module">
@@ -31,6 +25,11 @@ import './view.js';
 const adminBtn = document.getElementById('admin-btn');
 adminBtn.addEventListener('click', ()=>{
     const savedPassword = localStorage.getItem('adminPassword');
+    if(!savedPassword){
+        const newPass = prompt("No admin password set. Create a new password/phrase:");
+        if(newPass) localStorage.setItem('adminPassword', newPass);
+        return alert("Password saved! Click Admin again to login.");
+    }
     const input = prompt("Enter Admin Password/Phrase:");
     if(input===savedPassword){
         window.location.href='admin.html';
