@@ -57,19 +57,36 @@ submitPasswordBtn.addEventListener('click', async ()=>{
     if(!entered) return alert('Enter admin phrase');
 
     try {
-        const adminDoc = await getDoc(doc(firebaseDB, 'adminConfig', 'adminLogin'));
+        console.log("Fetching admin phrase from Firestore...");
+        const adminDocRef = doc(firebaseDB, 'adminConfig', 'adminLogin');
+        const adminDoc = await getDoc(adminDocRef);
+
+        console.log("Document exists?", adminDoc.exists());
         if(adminDoc.exists()){
-            const storedPhrase = adminDoc.data().phrase;
+            const data = adminDoc.data();
+            console.log("Firestore data:", data);
+
+            const storedPhrase = data.phrase;
+            if(!storedPhrase){
+                console.error("Phrase field not found!");
+                alert("Admin phrase not configured correctly!");
+                return;
+            }
+
+            console.log("Entered:", entered, "Stored:", storedPhrase);
             if(entered === storedPhrase){
+                console.log("Admin login successful!");
                 window.location.href='admin.html';
             } else {
+                console.warn("Incorrect phrase entered");
                 alert('Incorrect admin phrase!');
             }
         } else {
+            console.error("Admin document not found!");
             alert('Admin configuration not found in database!');
         }
     } catch(e){
-        console.error(e);
+        console.error("Error fetching admin phrase:", e);
         alert('Error checking admin phrase.');
     }
 });
