@@ -6,117 +6,28 @@
 <title>Guild Boss Loot</title>
 <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 p-4 sm:p-6">
+<body class="bg-gray-100 min-h-screen p-4 sm:p-6">
 
 <header class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold text-indigo-700">Guild Boss Loot</h1>
     <button id="admin-btn" class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700">Admin</button>
 </header>
 
-<!-- Search Panel -->
-<div class="mb-4 flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0">
-    <input id="search-input" type="text" placeholder="Search by Boss or Participant" class="border p-2 rounded flex-1">
+<!-- Search / Filter -->
+<div class="mb-4">
+    <input type="text" id="search-input" placeholder="Search by boss or member" 
+           class="w-full sm:w-1/2 p-2 border border-gray-300 rounded shadow focus:outline-none focus:ring-2 focus:ring-indigo-400">
 </div>
 
 <!-- Recorded Loot Entries Panel -->
 <section class="border border-indigo-300 p-4 rounded-lg bg-white shadow">
     <h2 class="text-xl font-semibold mb-4 text-indigo-600">Recorded Loot Entries</h2>
-    <div id="loot-list"></div>
+    <div id="loot-list" class="space-y-3"></div>
 </section>
 
 <script type="module">
-import { firebaseDB } from './firebase-init.js';
-import { collection, query, orderBy, onSnapshot } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import './view.js';
 
-const lootListEl = document.getElementById('loot-list');
-const lootCollection = collection(firebaseDB,'lootEntries');
-const searchInput = document.getElementById('search-input');
-
-let lootEntries = [];
-
-const lootQuery = query(lootCollection, orderBy('date','desc'));
-onSnapshot(lootQuery, snapshot=>{
-    lootEntries = [];
-    snapshot.forEach(docSnap=>{
-        const data = docSnap.data();
-        data.id = docSnap.id;
-        lootEntries.push(data);
-    });
-    renderLootEntries();
-});
-
-function renderLootEntries(){
-    const filterText = searchInput.value.toLowerCase();
-    lootListEl.innerHTML='';
-
-    lootEntries.forEach(entry=>{
-        const matchesBoss = entry.boss.toLowerCase().includes(filterText);
-        const matchesMember = entry.members.some(m=>m.toLowerCase().includes(filterText));
-        if(!matchesBoss && !matchesMember) return;
-
-        const entryDiv = document.createElement('div');
-        entryDiv.className='p-3 border rounded-lg bg-white mb-3';
-
-        // Status: Settled if all loot settled
-        const allSettled = entry.loot.every(l=>l.settled);
-        const status = allSettled ? 'Settled' : 'Active';
-
-        const headerDiv = document.createElement('div');
-        headerDiv.className='flex justify-between items-center cursor-pointer';
-        headerDiv.innerHTML=`<div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>
-                             <div><strong>Status:</strong> ${status}</div>`;
-        entryDiv.appendChild(headerDiv);
-
-        const expandedDiv = document.createElement('div');
-        expandedDiv.style.display='none';
-        expandedDiv.className='mt-2 pl-2 space-y-2';
-
-        // Participants
-        const membersDiv = document.createElement('div');
-        membersDiv.innerHTML='<strong>Participants:</strong>';
-        const ulMembers = document.createElement('ul');
-        ulMembers.className='ml-4 list-disc';
-        entry.members.forEach(m=>{
-            const li = document.createElement('li');
-            li.textContent=m;
-            ulMembers.appendChild(li);
-        });
-        membersDiv.appendChild(ulMembers);
-        expandedDiv.appendChild(membersDiv);
-
-        // Loot items
-        const lootDiv = document.createElement('div');
-        lootDiv.innerHTML='<strong>Loot:</strong>';
-        const ulLoot = document.createElement('ul');
-        ulLoot.className='ml-4 list-disc';
-        entry.loot.forEach(item=>{
-            const li = document.createElement('li');
-            li.textContent=`${item.name} - ${item.price}${item.settled?' (Settled)':''}`;
-            ulLoot.appendChild(li);
-        });
-        lootDiv.appendChild(ulLoot);
-        expandedDiv.appendChild(lootDiv);
-
-        // Total
-        const totalPrice = entry.loot.reduce((sum,i)=>sum+i.price,0);
-        const totalDiv = document.createElement('div');
-        totalDiv.className='font-semibold';
-        totalDiv.textContent=`Total Price: ${totalPrice}`;
-        expandedDiv.appendChild(totalDiv);
-
-        headerDiv.addEventListener('click', ()=>{
-            expandedDiv.style.display = expandedDiv.style.display==='none'?'block':'none';
-        });
-
-        entryDiv.appendChild(expandedDiv);
-        lootListEl.appendChild(entryDiv);
-    });
-}
-
-// Search filter
-searchInput.addEventListener('input', renderLootEntries);
-
-// Admin button
 const adminBtn = document.getElementById('admin-btn');
 adminBtn.addEventListener('click', ()=>{
     const savedPassword = localStorage.getItem('adminPassword');
