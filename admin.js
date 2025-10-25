@@ -1,27 +1,22 @@
 // admin.js
 import { firebaseDB } from './firebase-init.js';
-import { collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot, getDocs, getDoc, where } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
+import { collection, addDoc, updateDoc, deleteDoc, doc, query, orderBy, onSnapshot, getDocs, getDoc } 
+from "https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore.js";
 
 // ===== Navigation / Password =====
 const backBtn = document.getElementById('back-btn');
 const changePasswordBtn = document.getElementById('change-password-btn');
 
-// Back button: go to index.html
-backBtn.addEventListener('click', () => {
-    window.location.href = 'index.html';
-});
+backBtn.addEventListener('click', () => window.location.href = 'index.html');
 
-// Change password button: prompt new phrase/password
 changePasswordBtn.addEventListener('click', () => {
-    let currentPassword = localStorage.getItem('adminPassword');
-    const input = prompt("Enter current password/phrase:");
-    if(input !== currentPassword){
-        return alert("Incorrect current password!");
-    }
-    const newPass = prompt("Enter new password/phrase:");
-    if(!newPass) return alert("Password cannot be empty.");
-    localStorage.setItem('adminPassword', newPass);
-    alert("Password/phrase updated successfully!");
+  const current = localStorage.getItem('adminPassword');
+  const input = prompt("Enter current password/phrase:");
+  if (input !== current) return alert("Incorrect current password!");
+  const newPass = prompt("Enter new password/phrase:");
+  if (!newPass) return alert("Password cannot be empty.");
+  localStorage.setItem('adminPassword', newPass);
+  alert("Password/phrase updated successfully!");
 });
 
 // ===== DOM Elements =====
@@ -61,7 +56,7 @@ let members = [];
 let selectedBoss = null;
 let selectedParticipants = [];
 let lootItems = [];
-let allLootEntries = []; // For search/sort filtering
+let allLootEntries = [];
 
 // ===== Firestore Collections =====
 const bossesCol = collection(firebaseDB, 'bosses');
@@ -69,360 +64,249 @@ const membersCol = collection(firebaseDB, 'members');
 const lootCollection = collection(firebaseDB, 'lootEntries');
 
 // ===== Load Bosses and Members =====
-async function loadBossesAndMembers(){
-    const bossDocs = await getDocs(bossesCol);
-    bosses = bossDocs.docs.map(d=>d.data().name);
-
-    const memberDocs = await getDocs(membersCol);
-    members = memberDocs.docs.map(d=>d.data().name);
+async function loadBossesAndMembers() {
+  const bossDocs = await getDocs(bossesCol);
+  bosses = bossDocs.docs.map(d => d.data().name);
+  const memberDocs = await getDocs(membersCol);
+  members = memberDocs.docs.map(d => d.data().name);
 }
 loadBossesAndMembers();
 
 // ===== Add Boss =====
-addBossBtn.addEventListener('click', async ()=>{
-    const name = newBossInput.value.trim();
-    if(!name) return alert('Enter boss name');
-    await addDoc(bossesCol, {name});
-    bosses.push(name);
-    newBossInput.value='';
+addBossBtn.addEventListener('click', async () => {
+  const name = newBossInput.value.trim();
+  if (!name) return alert('Enter boss name');
+  if (bosses.includes(name)) return alert('Boss already exists!');
+  await addDoc(bossesCol, { name });
+  bosses.push(name);
+  newBossInput.value = '';
 });
 
 // ===== Add Member =====
-addMemberBtn.addEventListener('click', async ()=>{
-    const name = newMemberInput.value.trim();
-    if(!name) return alert('Enter member name');
-    await addDoc(membersCol, {name});
-    members.push(name);
-    newMemberInput.value='';
+addMemberBtn.addEventListener('click', async () => {
+  const name = newMemberInput.value.trim();
+  if (!name) return alert('Enter member name');
+  if (members.includes(name)) return alert('Member already exists!');
+  await addDoc(membersCol, { name });
+  members.push(name);
+  newMemberInput.value = '';
 });
 
 // ===== Add Loot Item =====
-addLootBtn.addEventListener('click', ()=>{
-    const name = lootNameInput.value.trim();
-    const price = parseFloat(lootPriceInput.value) || 0;
-    if(!name) return alert('Enter loot name');
-    lootItems.push({name, price, settled:false});
-    lootNameInput.value='';
-    lootPriceInput.value='';
-    renderLootItems();
+addLootBtn.addEventListener('click', () => {
+  const name = lootNameInput.value.trim();
+  const price = parseFloat(lootPriceInput.value) || 0;
+  if (!name) return alert('Enter loot name');
+  if (lootItems.find(i => i.name.toLowerCase() === name.toLowerCase()))
+    return alert('Duplicate loot name!');
+  lootItems.push({ name, price, settled: false });
+  lootNameInput.value = '';
+  lootPriceInput.value = '';
+  renderLootItems();
 });
 
 // ===== Render Loot Items Preview =====
-function renderLootItems(){
-    lootItemsContainer.innerHTML='';
-    if(lootItems.length===0) return;
+function renderLootItems() {
+  lootItemsContainer.innerHTML = '';
+  if (lootItems.length === 0) return;
 
-    const ul = document.createElement('ul');
-    ul.className='list-none p-0';
-
-    lootItems.forEach((item,idx)=>{
-        const li = document.createElement('li');
-        li.className='flex justify-between items-center py-1';
-
-        const span = document.createElement('span');
-        span.textContent=`${item.name} - ${item.price}`;
-
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent='Remove';
-        removeBtn.className='bg-red-500 text-white px-2 py-1 rounded';
-        removeBtn.onclick=()=>{lootItems.splice(idx,1); renderLootItems();};
-
-        li.appendChild(span);
-        li.appendChild(removeBtn);
-        ul.appendChild(li);
-    });
-
-    lootItemsContainer.appendChild(ul);
+  lootItems.forEach((item, idx) => {
+    const div = document.createElement('div');
+    div.className = 'flex justify-between py-1';
+    div.innerHTML = `<span>${item.name} - ${item.price}</span>
+      <button class="bg-red-500 text-white px-2 py-1 rounded">Remove</button>`;
+    div.querySelector('button').onclick = () => {
+      lootItems.splice(idx, 1);
+      renderLootItems();
+    };
+    lootItemsContainer.appendChild(div);
+  });
 }
 
-// ===== Select Boss Modal =====
+// ===== Select Boss =====
 selectBossBtn.addEventListener('click', () => {
-    modalBossList.innerHTML = '';
-
-    // ✅ Sort bosses alphabetically
-    const sortedBosses = [...bosses].sort((a, b) => a.localeCompare(b));
-
-    sortedBosses.forEach(boss => {
-        const div = document.createElement('div');
-        const radio = document.createElement('input');
-        radio.type = 'radio';
-        radio.name = 'boss';
-        radio.value = boss;
-        if (selectedBoss === boss) radio.checked = true;
-        div.appendChild(radio);
-        div.appendChild(document.createTextNode(' ' + boss));
-        modalBossList.appendChild(div);
-    });
-
-    document.getElementById('boss-modal').style.display = 'flex';
+  modalBossList.innerHTML = '';
+  [...bosses].sort((a, b) => a.localeCompare(b)).forEach(b => {
+    const div = document.createElement('div');
+    div.innerHTML = `<input type="radio" name="boss" value="${b}" ${selectedBoss === b ? 'checked' : ''}> ${b}`;
+    modalBossList.appendChild(div);
+  });
+  document.getElementById('boss-modal').style.display = 'flex';
 });
 
-saveBossBtn.addEventListener('click', ()=>{
-    const selected = modalBossList.querySelector('input[name="boss"]:checked');
-    if(selected){
-        selectedBoss = selected.value;
-        selectedBossSpan.textContent = selectedBoss;
-    }
-    document.getElementById('boss-modal').style.display='none';
+saveBossBtn.addEventListener('click', () => {
+  const selected = modalBossList.querySelector('input[name="boss"]:checked');
+  if (selected) {
+    selectedBoss = selected.value;
+    selectedBossSpan.textContent = selectedBoss;
+  }
+  document.getElementById('boss-modal').style.display = 'none';
 });
-
-closeBossBtn.addEventListener('click', ()=>{document.getElementById('boss-modal').style.display='none';});
+closeBossBtn.addEventListener('click', () => document.getElementById('boss-modal').style.display = 'none');
 
 // ===== Participants Modal =====
 editParticipantsBtn.addEventListener('click', () => {
-    modalMemberList.innerHTML = '';
-
-    // ✅ Sort members alphabetically
-    const sortedMembers = [...members].sort((a, b) => a.localeCompare(b));
-
-    sortedMembers.forEach(member => {
-        const div = document.createElement('div');
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.value = member;
-        if (selectedParticipants.includes(member)) checkbox.checked = true;
-        div.appendChild(checkbox);
-        div.appendChild(document.createTextNode(' ' + member));
-        modalMemberList.appendChild(div);
-    });
-
-    document.getElementById('participant-modal').style.display = 'flex';
+  modalMemberList.innerHTML = '';
+  [...members].sort((a, b) => a.localeCompare(b)).forEach(member => {
+    const div = document.createElement('div');
+    div.innerHTML = `<label><input type="checkbox" value="${member}" ${selectedParticipants.includes(member) ? 'checked' : ''}> ${member}</label>`;
+    modalMemberList.appendChild(div);
+  });
+  document.getElementById('participant-modal').style.display = 'flex';
 });
 
-saveParticipantsBtn.addEventListener('click', ()=>{
-    selectedParticipants = [];
-    const checked = modalMemberList.querySelectorAll('input[type="checkbox"]:checked');
-    checked.forEach(c=>selectedParticipants.push(c.value));
-    selectedParticipantsEl.innerHTML='';
-    selectedParticipants.forEach(p=>{
-        const li = document.createElement('li'); li.textContent = p; selectedParticipantsEl.appendChild(li);
-    });
-    document.getElementById('participant-modal').style.display='none';
+saveParticipantsBtn.addEventListener('click', () => {
+  selectedParticipants = Array.from(modalMemberList.querySelectorAll('input:checked')).map(c => c.value);
+  selectedParticipantsEl.innerHTML = selectedParticipants.map(p => `<li>${p}</li>`).join('');
+  document.getElementById('participant-modal').style.display = 'none';
 });
-
-closeParticipantsBtn.addEventListener('click', ()=>{document.getElementById('participant-modal').style.display='none';});
+closeParticipantsBtn.addEventListener('click', () => document.getElementById('participant-modal').style.display = 'none');
 
 // ===== Add New Loot Entry =====
-addNewLootEntryBtn.addEventListener('click', async ()=>{
-    if(!selectedBoss) return alert('Select a boss');
-    if(selectedParticipants.length===0) return alert('Select participants');
-    if(lootItems.length===0) return alert('Add at least one loot item');
+addNewLootEntryBtn.addEventListener('click', async () => {
+  if (!selectedBoss) return alert('Select a boss');
+  if (selectedParticipants.length === 0) return alert('Select participants');
+  if (lootItems.length === 0) return alert('Add loot items first');
 
-    const now = new Date();
-    const dateStr = now.toLocaleString('en-US', { month:'short', day:'numeric', hour:'numeric', minute:'2-digit', hour12:true });
+  const dateStr = new Date().toLocaleString('en-US', {
+    month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit', hour12: true
+  });
 
-    await addDoc(lootCollection,{
-        boss: selectedBoss,
-        members: selectedParticipants,
-        loot: lootItems,
-        date: dateStr,
-        settled: false
-    });
+  await addDoc(lootCollection, {
+    boss: selectedBoss,
+    members: selectedParticipants,
+    loot: lootItems,
+    date: dateStr,
+    settled: false
+  });
 
-    // Reset
-    selectedBoss=null;
-    selectedBossSpan.textContent='None';
-    selectedParticipants=[];
-    selectedParticipantsEl.innerHTML='';
-    lootItems=[];
-    renderLootItems();
+  selectedBoss = null;
+  selectedBossSpan.textContent = 'None';
+  selectedParticipants = [];
+  selectedParticipantsEl.innerHTML = '';
+  lootItems = [];
+  renderLootItems();
 });
 
-// ===== Render Recorded Loot Entries =====
-const lootQuery = query(lootCollection, orderBy('date','desc'));
-
-onSnapshot(lootQuery, snapshot=>{
-    allLootEntries = snapshot.docs.map(docSnap=>({id:docSnap.id, data:docSnap.data()}));
-    renderLootEntries();
+// ===== Render Loot Entries =====
+const lootQuery = query(lootCollection, orderBy('date', 'desc'));
+onSnapshot(lootQuery, snap => {
+  allLootEntries = snap.docs.map(d => ({ id: d.id, data: d.data() }));
+  renderLootEntries();
 });
 
-// ===== Render function with filter/search =====
-function renderLootEntries(filterText=''){
-    lootListEl.innerHTML='';
+async function renderLootEntries(filterText = '') {
+  lootListEl.innerHTML = '';
 
-    const filtered = allLootEntries.filter(entryObj=>{
-        const entry = entryObj.data;
-        const bossMatch = entry.boss.toLowerCase().includes(filterText.toLowerCase());
-        const memberMatch = entry.members.some(m=>m.toLowerCase().includes(filterText.toLowerCase()));
-        return bossMatch || memberMatch;
+  const filtered = allLootEntries.filter(e => {
+    const { boss, members } = e.data;
+    return boss.toLowerCase().includes(filterText.toLowerCase()) ||
+      members.some(m => m.toLowerCase().includes(filterText.toLowerCase()));
+  });
+
+  for (const entryObj of filtered) {
+    const entry = entryObj.data;
+    const id = entryObj.id;
+
+    const allSettled = entry.loot.every(l => l.settled);
+    if (allSettled && !entry.settled) await updateDoc(doc(firebaseDB, 'lootEntries', id), { settled: true });
+
+    const div = document.createElement('div');
+    div.className = 'p-3 border rounded-md bg-gray-50 mb-2';
+    div.innerHTML = `
+      <div class="flex justify-between">
+        <div><b>Boss:</b> ${entry.boss} | <b>Date:</b> ${entry.date}</div>
+        <div><b>Status:</b> ${entry.settled ? 'Settled' : 'Active'}</div>
+      </div>
+      <div class="mt-2">
+        <div class="flex justify-between items-start">
+          <div><b>Participants:</b><ul>${entry.members.map(m => `<li>${m}</li>`).join('')}</ul></div>
+          <button class="bg-blue-500 text-white px-2 py-1 rounded edit-participants-btn" data-id="${id}">Edit Participants</button>
+        </div>
+        <div class="mt-2">${entry.loot.map((l, i) => `
+          <div class="flex justify-between items-center">
+            <span>${l.name}</span>
+            <div class="flex gap-2">
+              ${!entry.settled && !l.settled ? `
+                <button class="bg-indigo-200 px-2 py-1 rounded edit-loot-btn" data-entry="${id}" data-index="${i}">${l.price}</button>
+                <button class="bg-green-500 text-white px-2 py-1 rounded settle-btn" data-entry="${id}" data-index="${i}">Settle</button>` :
+                `<span class="text-gray-500 line-through">${l.price}</span>`}
+            </div>
+          </div>`).join('')}</div>
+        <div class="mt-2 font-semibold"><b>Total Price:</b> ${entry.loot.reduce((s, i) => s + i.price, 0)}</div>
+        <button class="bg-red-500 text-white px-3 py-1 rounded mt-2 remove-entry-btn" data-id="${id}">Remove Entry</button>
+      </div>`;
+
+    lootListEl.appendChild(div);
+  }
+
+  // Event Listeners
+  lootListEl.querySelectorAll('.edit-loot-btn').forEach(btn => {
+    btn.addEventListener('click', e => {
+      const entryId = e.target.dataset.entry;
+      const lootIndex = +e.target.dataset.index;
+      const entry = allLootEntries.find(x => x.id === entryId).data;
+      const lootItem = entry.loot[lootIndex];
+      lootToEdit = { entryId, lootIndex, lootItem };
+      editLootNameSpan.textContent = lootItem.name;
+      editLootPriceInput.value = lootItem.price;
+      editLootModal.style.display = 'flex';
     });
+  });
 
-    filtered.forEach(async entryObj=>{
-        const entry = entryObj.data;
-        const entryId = entryObj.id;
-
-        // Auto-settle if all loot items settled
-        const allLootSettled = entry.loot.every(l=>l.settled);
-        if(allLootSettled && !entry.settled){
-            await updateDoc(doc(firebaseDB,'lootEntries',entryId), {settled:true});
-            entry.settled = true;
-        }
-
-        const entryDiv = document.createElement('div');
-        entryDiv.className='p-3 border rounded-md bg-gray-50 mb-2';
-
-        // Header
-        const headerDiv = document.createElement('div');
-        headerDiv.className='flex justify-between items-center cursor-pointer';
-        headerDiv.innerHTML = `<div><strong>Boss:</strong> ${entry.boss} | <strong>Date:</strong> ${entry.date}</div>
-                               <div><strong>Status:</strong> ${entry.settled?'Settled':'Active'}</div>`;
-        entryDiv.appendChild(headerDiv);
-
-        // Expandable content
-        const expandedDiv = document.createElement('div');
-        expandedDiv.style.display='none';
-        expandedDiv.className='mt-2 pl-2';
-
-        // Participants
-        const membersDiv = document.createElement('div');
-        membersDiv.innerHTML='<strong>Participants:</strong>';
-        const ulMembers = document.createElement('ul');
-        entry.members.forEach(m=>{
-            const li = document.createElement('li'); li.textContent=m; ulMembers.appendChild(li);
-        });
-        membersDiv.appendChild(ulMembers);
-        membersDiv.className='mb-2';
-        expandedDiv.appendChild(membersDiv);
-
-// ===== Edit Participants Button =====
-const editPartBtn = document.createElement('button');
-editPartBtn.textContent = 'Edit Participants';
-editPartBtn.className = 'bg-blue-500 text-white px-2 py-1 rounded mt-2';
-editPartBtn.addEventListener('click', async () => {
-    const entryRef = doc(firebaseDB, 'lootEntries', entryId);
-    const entrySnap = await getDoc(entryRef);
-    if (!entrySnap.exists()) return alert('Entry not found.');
-
-    const entry = entrySnap.data();
-
-    // ✅ Sort members alphabetically
-    const membersSnap = await getDocs(collection(firebaseDB, 'members'));
-    const allMembers = membersSnap.docs.map(d => d.data().name).sort((a, b) => a.localeCompare(b));
-
-    const current = entry.members || [];
-
-    const newList = prompt(
-        'Edit Participants (comma-separated):\n\n' +
-        allMembers.map(m => `${current.includes(m) ? '✅' : '⬜'} ${m}`).join('\n'),
-        current.join(', ')
-    );
-
-    if (newList === null) return;
-    const cleaned = Array.from(new Set(newList.split(',').map(v => v.trim()).filter(v => v)));
-
-    await updateDoc(entryRef, { members: cleaned });
-    alert('Participants updated successfully!');
-});
-expandedDiv.appendChild(editPartBtn);
-
-        // Loot items with Edit and Settle
-        const lootContainer = document.createElement('div');
-        lootContainer.className='space-y-1';
-        entry.loot.forEach((item,index)=>{
-            const lootRow = document.createElement('div');
-            lootRow.className='flex justify-between items-center';
-
-            const nameSpan = document.createElement('span');
-            nameSpan.textContent=item.name;
-
-            const btnGroup = document.createElement('div');
-            btnGroup.className='flex gap-2';
-
-            if(!entry.settled && !item.settled){
-                const priceBtn = document.createElement('button');
-                priceBtn.textContent=item.price;
-                priceBtn.className='bg-indigo-200 px-2 py-1 rounded';
-                priceBtn.onclick=()=>{
-                    lootToEdit={entryId, lootIndex:index, lootItem:item};
-                    editLootNameSpan.textContent=item.name;
-                    editLootPriceInput.value=item.price;
-                    editLootModal.style.display='flex';
-                };
-                btnGroup.appendChild(priceBtn);
-
-                const settleBtn = document.createElement('button');
-                settleBtn.textContent='Settle';
-                settleBtn.className='bg-green-500 text-white px-2 py-1 rounded';
-                settleBtn.onclick=async ()=>{
-                    const entryRef = doc(firebaseDB,'lootEntries',entryId);
-                    const currentDocSnap = await getDoc(entryRef);
-                    const currentLoot = currentDocSnap.data().loot.map((l,i)=> i===index ? {...l, settled:true} : l);
-                    await updateDoc(entryRef,{loot:currentLoot});
-                };
-                btnGroup.appendChild(settleBtn);
-            } else {
-                const priceSpan = document.createElement('span');
-                priceSpan.textContent=item.price;
-                priceSpan.style.textDecoration='line-through';
-                priceSpan.style.color='#6b7280';
-                btnGroup.appendChild(priceSpan);
-            }
-
-            lootRow.appendChild(nameSpan);
-            lootRow.appendChild(btnGroup);
-            lootContainer.appendChild(lootRow);
-        });
-        expandedDiv.appendChild(lootContainer);
-
-        // Total Price
-        const totalPrice = entry.loot.reduce((sum,i)=>sum+i.price,0);
-        const summaryDiv = document.createElement('div');
-        summaryDiv.className='mt-2 font-semibold';
-        summaryDiv.innerHTML=`<strong>Total Price:</strong> ${totalPrice}`;
-        expandedDiv.appendChild(summaryDiv);
-
-        // Per Loot Share
-        const perLootDiv = document.createElement('div');
-        perLootDiv.className='mt-2';
-        perLootDiv.innerHTML='<strong>Per Loot Share:</strong>';
-        const ulShares = document.createElement('ul');
-        entry.loot.forEach(l=>{
-            const share = entry.members.length>0 ? (l.price/entry.members.length).toFixed(2) : 0;
-            const li = document.createElement('li');
-            li.textContent=`${l.name}: ${share} per member`;
-            ulShares.appendChild(li);
-        });
-        perLootDiv.appendChild(ulShares);
-        expandedDiv.appendChild(perLootDiv);
-
-        entryDiv.appendChild(expandedDiv);
-
-        headerDiv.addEventListener('click', ()=>{expandedDiv.style.display = expandedDiv.style.display==='none'?'block':'none';});
-
-        // Remove Entry button
-        const removeBtn = document.createElement('button');
-        removeBtn.textContent='Remove Entry';
-        removeBtn.className='bg-red-500 text-white px-3 py-1 rounded mt-2';
-        removeBtn.onclick=async ()=>{
-            if(confirm('Remove this loot entry?')) await deleteDoc(doc(firebaseDB,'lootEntries',entryId));
-        };
-        entryDiv.appendChild(removeBtn);
-
-        lootListEl.appendChild(entryDiv);
+  lootListEl.querySelectorAll('.settle-btn').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      const entryId = e.target.dataset.entry;
+      const index = +e.target.dataset.index;
+      if (!confirm('Settle this loot item?')) return;
+      const ref = doc(firebaseDB, 'lootEntries', entryId);
+      const snap = await getDoc(ref);
+      const current = snap.data().loot.map((l, i) => i === index ? { ...l, settled: true } : l);
+      await updateDoc(ref, { loot: current });
     });
+  });
+
+  lootListEl.querySelectorAll('.remove-entry-btn').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      if (confirm('Remove this loot entry?'))
+        await deleteDoc(doc(firebaseDB, 'lootEntries', e.target.dataset.id));
+    });
+  });
+
+  lootListEl.querySelectorAll('.edit-participants-btn').forEach(btn => {
+    btn.addEventListener('click', async e => {
+      const id = e.target.dataset.id;
+      const ref = doc(firebaseDB, 'lootEntries', id);
+      const snap = await getDoc(ref);
+      if (!snap.exists()) return alert('Entry not found');
+      const entry = snap.data();
+      const allMembers = (await getDocs(membersCol)).docs.map(d => d.data().name).sort((a, b) => a.localeCompare(b));
+      const cur = entry.members || [];
+      const newList = prompt('Edit Participants (comma-separated):', cur.join(', '));
+      if (newList === null) return;
+      const cleaned = [...new Set(newList.split(',').map(v => v.trim()).filter(v => v))];
+      await updateDoc(ref, { members: cleaned });
+      alert('Participants updated!');
+    });
+  });
 }
 
-// ===== Edit Loot Price Modal =====
-saveLootPriceBtn.addEventListener('click', async ()=>{
-    if(!lootToEdit) return;
-    const newPrice = parseFloat(editLootPriceInput.value)||0;
-    const entryRef = doc(firebaseDB,'lootEntries',lootToEdit.entryId);
-    const currentDocSnap = await getDoc(entryRef);
-    if(!currentDocSnap.exists()) return alert("Loot entry not found");
-    const currentLoot = currentDocSnap.data().loot || [];
-    const updatedLoot = currentLoot.map((l,i)=> i===lootToEdit.lootIndex ? {...l,price:newPrice} : l);
-    await updateDoc(entryRef,{loot:updatedLoot});
-    editLootModal.style.display='none';
-    lootToEdit=null;
+// ===== Edit Loot Modal =====
+saveLootPriceBtn.addEventListener('click', async () => {
+  if (!lootToEdit) return;
+  const newPrice = parseFloat(editLootPriceInput.value) || 0;
+  const ref = doc(firebaseDB, 'lootEntries', lootToEdit.entryId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return alert("Loot entry not found");
+  const updated = snap.data().loot.map((l, i) => i === lootToEdit.lootIndex ? { ...l, price: newPrice } : l);
+  await updateDoc(ref, { loot: updated });
+  editLootModal.style.display = 'none';
+  lootToEdit = null;
+});
+closeLootPriceBtn.addEventListener('click', () => {
+  editLootModal.style.display = 'none';
+  lootToEdit = null;
 });
 
-closeLootPriceBtn.addEventListener('click', ()=>{
-    editLootModal.style.display='none';
-    lootToEdit=null;
-});
-
-// ===== Search / Filter =====
-searchInput.addEventListener('input', ()=>{
-    const text = searchInput.value.trim();
-    renderLootEntries(text);
-});
+// ===== Search =====
+searchInput.addEventListener('input', () => renderLootEntries(searchInput.value.trim()));
