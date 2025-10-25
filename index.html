@@ -10,13 +10,53 @@
 
 <header class="flex justify-between items-center mb-6">
     <h1 class="text-3xl font-bold text-indigo-700">Guild Boss Loot</h1>
-    <button id="admin-btn" class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700">Admin</button>
+    <button id="admin-btn" class="bg-indigo-600 text-white px-4 py-2 rounded shadow hover:bg-indigo-700">
+        Admin
+    </button>
 </header>
 
 <!-- Recorded Loot Entries Panel -->
-<section class="border border-indigo-300 p-4 rounded-lg bg-white shadow">
+<section class="border border-indigo-300 p-4 rounded-lg bg-white shadow mb-6">
     <h2 class="text-xl font-semibold mb-4 text-indigo-600">Recorded Loot Entries</h2>
     <div id="loot-list"></div>
+</section>
+
+<!-- Guild Rules Panel -->
+<section class="border border-gray-300 p-4 rounded-lg bg-white shadow text-sm leading-relaxed text-gray-700">
+    <h2 class="text-xl font-semibold mb-3 text-indigo-600">🏹 Guild Boss Loot Distribution Rules</h2>
+
+    <h3 class="font-semibold mt-3 mb-1 text-gray-800">💰 Loot Recording</h3>
+    <p>All loots obtained from boss hunts must be recorded in the system.</p>
+    <p>If an item is not yet sold, record its price as “0” (temporary value).</p>
+    <p>Once sold, update its actual price and mark it as “Settled.”</p>
+
+    <hr class="my-3 border-gray-300">
+
+    <h3 class="font-semibold mt-3 mb-1 text-gray-800">⚖️ Price and Fee Rule</h3>
+    <p>The price entered will already have the 5% managing fee deducted.</p>
+    <p><strong>Example:</strong> If an item sold for 10,000 → record 9,500 in the system.</p>
+    <p>The system will use the entered price directly for share calculation.</p>
+
+    <hr class="my-3 border-gray-300">
+
+    <h3 class="font-semibold mt-3 mb-1 text-gray-800">👥 Participant Shares</h3>
+    <p>The total recorded loot value is divided equally among all listed participants.</p>
+    <p>Each member’s share = (Total Loot Price) ÷ (Number of Participants).</p>
+    <p>You can view or search which boss you participated in by typing your IGN in the search bar.</p>
+
+    <hr class="my-3 border-gray-300">
+
+    <h3 class="font-semibold mt-3 mb-1 text-gray-800">✅ Settlement</h3>
+    <p>A loot entry is marked “Settled” once all its items have been sold and confirmed.</p>
+    <p>When all loots under a boss are settled, the entire entry status changes to Settled automatically.</p>
+    <p>Once all shares are distributed, the record will be removed.</p>
+
+    <hr class="my-3 border-gray-300">
+
+    <h3 class="font-semibold mt-3 mb-1 text-gray-800">🛠️ Management Notes</h3>
+    <p>Only authorized admins can add, edit, or settle loot entries.</p>
+    <p>Use “Add Boss” and “Add Member” to update guild lists (duplicates are prevented).</p>
+    <p>Always review entries before settling to maintain fair distribution.</p>
 </section>
 
 <script type="module">
