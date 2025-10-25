@@ -284,6 +284,37 @@ function renderLootEntries(filterText=''){
         membersDiv.className='mb-2';
         expandedDiv.appendChild(membersDiv);
 
+// ===== Edit Participants Button =====
+const editPartBtn = document.createElement('button');
+editPartBtn.textContent = 'Edit Participants';
+editPartBtn.className = 'bg-blue-500 text-white px-2 py-1 rounded mt-2';
+editPartBtn.addEventListener('click', async () => {
+    const entryRef = doc(firebaseDB, 'lootEntries', entryId);
+    const entrySnap = await getDoc(entryRef);
+    if (!entrySnap.exists()) return alert('Entry not found.');
+
+    const entry = entrySnap.data();
+
+    // ✅ Sort members alphabetically
+    const membersSnap = await getDocs(collection(firebaseDB, 'members'));
+    const allMembers = membersSnap.docs.map(d => d.data().name).sort((a, b) => a.localeCompare(b));
+
+    const current = entry.members || [];
+
+    const newList = prompt(
+        'Edit Participants (comma-separated):\n\n' +
+        allMembers.map(m => `${current.includes(m) ? '✅' : '⬜'} ${m}`).join('\n'),
+        current.join(', ')
+    );
+
+    if (newList === null) return;
+    const cleaned = Array.from(new Set(newList.split(',').map(v => v.trim()).filter(v => v)));
+
+    await updateDoc(entryRef, { members: cleaned });
+    alert('Participants updated successfully!');
+});
+expandedDiv.appendChild(editPartBtn);
+
         // Loot items with Edit and Settle
         const lootContainer = document.createElement('div');
         lootContainer.className='space-y-1';
