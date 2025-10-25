@@ -418,10 +418,14 @@ async function renderLootEntries(filterText = ''){
     expanded.appendChild(removeBtn);
 
     // append header + expanded
-    entryDiv.appendChild(header);
-    entryDiv.appendChild(expanded);
-    // toggle expanded
-    header.onclick = ()=>{ expanded.style.display = expanded.style.display === 'none' ? 'block' : 'none'; };
+entryDiv.appendChild(header);
+entryDiv.appendChild(expanded);
+
+// Toggle expand/collapse on click, except when clicking buttons inside
+header.addEventListener('click', (e) => {
+  if (e.target.tagName === 'BUTTON') return; // prevent toggle when clicking a button
+  expanded.style.display = expanded.style.display === 'none' ? 'block' : 'none';
+});
 
     lootListEl.appendChild(entryDiv);
   }
